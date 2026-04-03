@@ -9,7 +9,9 @@ services:
             - .:/var/www/html
             - ./apache/vhost.conf:/etc/apache2/sites-available/000-default.conf:ro
         env_file:
-            - .env
+            - .env.docker
+            - path: .env.docker.local
+              required: false
         environment:
             - APACHE_DOCUMENT_ROOT=/var/www/html/public
         depends_on:
@@ -20,7 +22,9 @@ services:
         container_name: vendor_db
         restart: always
         env_file:
-            - .env
+            - .env.docker
+            - path: .env.docker.local
+              required: false
         volumes:
             - db_data:/var/lib/mysql
             # - ./schema:/docker-entrypoint-initdb.d:ro
@@ -32,7 +36,9 @@ services:
         ports:
             - "8081:80"
         env_file:
-            - .env
+            - .env.docker
+            - path: .env.docker.local
+              required: false
         environment:
             - PMA_HOST=db
         depends_on:
