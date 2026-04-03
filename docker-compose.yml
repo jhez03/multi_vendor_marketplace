@@ -1,0 +1,42 @@
+services:
+    app:
+        build: .
+        container_name: vendor_app
+        restart: always
+        ports:
+            - "8080:80"
+        volumes:
+            - .:/var/www/html
+            - ./apache/vhost.conf:/etc/apache2/sites-available/000-default.conf:ro
+        env_file:
+            - .env
+        environment:
+            - APACHE_DOCUMENT_ROOT=/var/www/html/public
+        depends_on:
+            - db
+
+    db:
+        image: mysql:8.0
+        container_name: vendor_db
+        restart: always
+        env_file:
+            - .env
+        volumes:
+            - db_data:/var/lib/mysql
+            # - ./schema:/docker-entrypoint-initdb.d:ro
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: vendor_phpmyadmin
+        restart: always
+        ports:
+            - "8081:80"
+        env_file:
+            - .env
+        environment:
+            - PMA_HOST=db
+        depends_on:
+            - db
+
+volumes:
+    db_data:
