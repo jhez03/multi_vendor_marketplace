@@ -12,6 +12,11 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
+###> docker ###
+/.env.docker
+/.env.docker.local
+###< docker ###
+
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
