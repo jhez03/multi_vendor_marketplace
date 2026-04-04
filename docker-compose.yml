@@ -21,6 +21,8 @@ services:
         image: mysql:8.0
         container_name: vendor_db
         restart: always
+        ports:
+            - "3306:3306"
         env_file:
             - .env.docker
             - path: .env.docker.local
