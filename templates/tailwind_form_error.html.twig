@@ -1,0 +1,14 @@
+{# Styles the list of errors for a field or for the form #}
+{% block form_errors %}
+  {% if errors|length > 0 %}
+    <div class="mt-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+         role="alert"
+         aria-live="polite">
+      <ul class="list-disc space-y-1 pl-5">
+        {% for error in errors %}
+          <li>{{ error.message }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endblock form_errors %}

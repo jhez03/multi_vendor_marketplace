@@ -37,7 +37,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?bool $isActive = true;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?\DateTimeImmutable $createdAt;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?CustomerProfile $customerProfile = null;
@@ -53,6 +53,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
+        $this->createdAt = new \DateTimeImmutable();
         $this->orders = new ArrayCollection();
     }
 
