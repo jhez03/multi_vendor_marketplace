@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\OrderItem;
+use App\Entity\ProductCategory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<OrderItem>
+ * @extends ServiceEntityRepository<ProductCategory>
  */
-class OrderItemRepository extends ServiceEntityRepository
+class ProductCategoryRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, OrderItem::class);
+        parent::__construct($registry, ProductCategory::class);
     }
 
     //    /**
-    //     * @return OrderItem[] Returns an array of OrderItem objects
+    //     * @return ProductCategory[] Returns an array of ProductCategory objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('o.id', 'ASC')
+    //            ->orderBy('p.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?OrderItem
+    //    public function findOneBySomeField($value): ?ProductCategory
     //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

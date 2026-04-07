@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
-use App\Entity\CustomerProfile;
+use App\Entity\BuyerProfile;
 use App\Entity\SellerProfile;
+use App\Entity\Shop;
 use App\Entity\User;
 use App\Form\CustomerRegistrationType;
-use App\Form\SellerRegistrationFormType;
 use App\Form\SellerRegistrationType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -35,14 +35,18 @@ class RegistrationController extends AbstractController
                 $this->addFlash('error', 'An account with this email already exists.');
                 return $this->redirectToRoute('register_customer');
             }
-            //set Role
+
+            //set role
             $user->setRoles(['ROLE_CUSTOMER']);
 
-            $user->setPassword($passwordHasher->hashPassword($user, $form->get('plainPassword')->getData()));
 
-            $profile = new CustomerProfile();
+            $user->setPassword($passwordHasher->hashPassword($user, $form->get('password')->getData()));
+
+            $profile = new BuyerProfile();
             $profile->setUser($user);
             $profile->setFullName($form->get('fullName')->getData());
+            $user->setEmail($form->get('email')->getData());
+
 
             //save
             $em->persist($user);
@@ -71,30 +75,41 @@ class RegistrationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             if ($em->getRepository(User::class)->findOneBy(['email' => $user->getEmail()])) {
                 $this->addFlash('error', 'An account with this email already exists.');
-                return $this->redirectToRoute('register_seller');
+                return $this->redirectToRoute('register_customer');
             }
-            //set Role
-            $user->setRoles(['ROLE_SELLER']);
+
+            //set role
+            $roles = $user->getRoles();
+            $roles[] = 'ROLE_SELLER';
+            $user->setRoles($roles);
+
 
             $user->setPassword($passwordHasher->hashPassword($user, $form->get('password')->getData()));
 
-            $seller = new SellerProfile();
-            $seller->setUser($user);
-            $seller->setStoreName($form->get('storeName')->getData());
+            $profile = new SellerProfile();
+            $shop = new Shop();
+            $profile->setUser($user);
+            $profile->setDisplayName($form->get('fullName')->getData());
 
-            $seller->setVerified(false);
+            $shop->setSellerId($profile);
+            $shop->setStoreName($form->get('storeName')->getData());
+            $shop->setStoreDescription($form->get('storeDescription')->getData());
+            $user->setEmail($form->get('email')->getData());
+
 
             //save
             $em->persist($user);
-            $em->persist($seller);
+            $em->persist($profile);
+            $em->persist($shop);
             $em->flush();
 
-            $this->addFlash('success', 'Seller Registered successfully! Your account is pending verification by the admin. You will be notified once your account is verified.');
+            $this->addFlash('success', 'Registration successful! You can now log in.');
             return $this->redirectToRoute('app_login');
         }
 
-        return $this->render('auth/register_customer.html.twig', [
-            'registrationForm' => $form->createView(),
+
+        return $this->render('auth/register_seller.html.twig', [
+            'registrationForm' => $form,
         ]);
     }
 }
