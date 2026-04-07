@@ -1,0 +1,262 @@
+{% extends 'base.html.twig' %}
+{% from 'seller/dashboard/partials/_sidebar.html.twig' import sidebar %}
+{% block title %}Seller Overview — Marketplace{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap"
+          rel="stylesheet">
+    <style>
+        .font-serif { font-family: 'Instrument Serif', serif; }
+        body { font-family: 'DM Sans', sans-serif; }
+        @keyframes fade-up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+        .anim   { animation: fade-up .35s ease both; }
+        .d-1 { animation-delay: .04s; } .d-2 { animation-delay: .08s; }
+        .d-3 { animation-delay: .12s; } .d-4 { animation-delay: .16s; }
+        .d-5 { animation-delay: .22s; } .d-6 { animation-delay: .28s; }
+        @keyframes bar-fill { from { width:0; } to { width: var(--w); } }
+        .perf-bar { animation: bar-fill .6s ease both; animation-delay: .5s; }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="flex min-h-screen bg-[#0a0908] text-[#e8e4dc]"
+         data-controller="sidebar">
+        {# Mobile backdrop #}
+        <div data-sidebar-target="overlay"
+             data-action="click->sidebar#close"
+             class="hidden fixed inset-0 z-20 bg-black/60 lg:hidden"></div>
+        {# Sidebar #}
+        {{ sidebar(user, profile, 'app_dashboard', 'seller') }}
+        {# ── Main column ── #}
+        <div class="flex flex-col flex-1 min-w-0 overflow-x-hidden">
+            {# Verification banner #}
+            {% if profile and not profile.verified %}
+                <div class="flex items-center gap-3 px-5 lg:px-8 py-2.5 bg-[#d4860a]/[0.08] border-b border-[#d4860a]/20 text-[0.8rem] text-[#f0a832]"
+                     data-controller="dismissible"
+                     id="verify-notice">
+                    <svg class="w-3.5 h-3.5 shrink-0"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8">
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span><strong class="font-semibold">Verification pending</strong> — Our team reviews new stores within 1–2 business days.</span>
+                    <button onclick="document.getElementById('verify-notice').remove()"
+                            class="ml-auto text-[0.72rem] text-[#6b6760] hover:text-[#e8e4dc] transition-colors cursor-pointer">
+                        Dismiss
+                    </button>
+                </div>
+            {% endif %}
+            {# Top bar #}
+            {% include 'seller/dashboard/partials/_header.html.twig' %}
+            {# Content #}
+            <turbo-frame id="seller-main" class="flex-1">
+            <main class="p-5 lg:p-8 space-y-6">
+                {# Revenue hero #}
+                <div class="anim relative overflow-hidden rounded-xl bg-[#141210] border border-white/[0.07] px-6 py-5 flex flex-wrap items-center justify-between gap-6"
+                     style="background-image:linear-gradient(100deg,rgba(181,96,30,.08) 0%,transparent 55%)">
+                    <div>
+                        <p class="text-[0.63rem] font-semibold tracking-[0.14em] uppercase text-[#6b6760] mb-1">Total revenue · this month</p>
+                        <p class="font-serif text-[2.6rem] leading-none text-[#e8e4dc]">₱0.00</p>
+                        <p class="text-[0.78rem] text-[#6b6760] mt-2">Member since {{ profile ? profile.createdAt|date("F Y") : 'today' }}</p>
+                        <p class="text-[0.72rem] text-[#22bfa3] mt-1">↑ List your first product to start earning</p>
+                    </div>
+                    <div class="flex gap-8">
+                        {% for item in [{n:'0',l:'Orders'},{n:'0',l:'Products'},{n:'—',l:'Rating'}] %}
+                            <div class="text-center">
+                                <p class="font-serif text-2xl text-[#e8e4dc]">{{ item.n }}</p>
+                                <p class="text-[0.63rem] font-semibold tracking-[0.1em] uppercase text-[#6b6760] mt-1">{{ item.l }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {# Stat cards #}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {% for i, s in [
+                        {label:'Gross sales',     value:'₱0', sub:'All time',         color:'#d4860a', icon:'<line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />'},
+                        {label:'Orders received', value:'0',  sub:'↑ Start selling',  color:'#1a9e87', icon:'<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />'},
+                        {label:'Active listings', value:'0',  sub:'Products live',    color:'#3b8bd4', icon:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />'},
+                        {label:'Pending actions', value:'0',  sub:'Needs attention',  color:'#e05c4b', icon:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />'},
+                        ] %}
+                        <div class="d-{{ i + 1 }} anim relative overflow-hidden rounded-xl bg-[#141210] border border-white/[0.07] p-4 lg:p-5">
+                            <div class="absolute inset-x-0 top-0 h-0.5 rounded-t-xl"
+                                 style="background:{{ s.color }}"></div>
+                            <div class="flex items-start justify-between gap-2 mb-3">
+                                <p class="text-[0.63rem] font-semibold tracking-[0.1em] uppercase text-[#6b6760]">{{ s.label }}</p>
+                                <div class="w-7 h-7 rounded-lg grid place-items-center shrink-0"
+                                     style="background:{{ s.color }}1a">
+                                    <svg class="w-3.5 h-3.5"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="{{ s.color }}"
+                                         stroke-width="1.7">
+                                        {{ s.icon|raw }}
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="font-serif text-[2rem] leading-none text-[#e8e4dc]">{{ s.value }}</p>
+                            <p class="text-[0.7rem] text-[#6b6760] mt-1.5">{{ s.sub }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                {# Two column #}
+                <div class="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
+                    {# Left: orders + products #}
+                    <div class="anim d-5 space-y-6">
+                        {# Orders table #}
+                        <div class="rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07]">
+                                <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Recent orders</h3>
+                                <a href="#"
+                                   class="text-[0.72rem] text-[#f0a832] hover:opacity-75 transition-opacity no-underline">View all →</a>
+                            </div>
+                            <div class="hidden sm:grid grid-cols-[1fr_90px_90px_80px] gap-4 px-5 py-2.5 border-b border-white/[0.07] text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[#6b6760]">
+                                <span>Customer</span><span>Date</span><span>Status</span><span class="text-right">Amount</span>
+                            </div>
+                            {% set badge = {
+                                "delivered": "bg-[#1a9e87]/15 text-[#22bfa3]",
+                                "shipped": "bg-[#3b8bd4]/15 text-[#71b3e8]",
+                                "processing": "bg-[#d4860a]/15 text-[#f0a832]",
+                                "pending": "bg-[#b5601e]/15 text-[#e0924a]",
+                                "cancelled": "bg-[#e05c4b]/12 text-[#f09080]"
+                            } %}
+                            {% for row in [
+                                {name:'Maria Santos',   ref:'#ORD-0001',date:'Dec 3', status:'processing',amount:'₱4,299'},
+                                {name:'Juan dela Cruz', ref:'#ORD-0002',date:'Dec 2', status:'shipped',   amount:'₱1,850'},
+                                {name:'Ana Reyes',      ref:'#ORD-0003',date:'Dec 1', status:'delivered', amount:'₱6,700'},
+                                {name:'Rico Manalo',    ref:'#ORD-0004',date:'Nov 30',status:'pending',   amount:'₱980'},
+                                {name:'Luz Bautista',   ref:'#ORD-0005',date:'Nov 29',status:'cancelled', amount:'₱2,400'},
+                                ] %}
+                                <div class="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_90px_90px_80px] items-center gap-4 px-5 py-3.5 border-b border-white/[0.07] last:border-b-0 hover:bg-[#1a1815] transition-colors">
+                                    <div>
+                                        <p class="text-[0.82rem] font-medium text-[#e8e4dc]">{{ row.name }}</p>
+                                        <p class="text-[0.7rem] text-[#6b6760] mt-0.5 font-mono">{{ row.ref }}</p>
+                                    </div>
+                                    <span class="hidden sm:block text-[0.75rem] text-[#6b6760]">{{ row.date }}</span>
+                                    <span class="hidden sm:block">
+                                        <span class="text-[0.6rem] font-semibold uppercase tracking-wider px-2 py-1 rounded-full {{ badge[row.status] }}">{{ row.status }}</span>
+                                    </span>
+                                    <div class="text-right">
+                                        <p class="text-[0.85rem] font-medium text-[#e8e4dc]">{{ row.amount }}</p>
+                                        <span class="sm:hidden mt-0.5 inline-block text-[0.6rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full {{ badge[row.status] }}">{{ row.status }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {# Products list #}
+                        <div class="rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07]">
+                                <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Your products</h3>
+                                <a href="#"
+                                   class="text-[0.72rem] text-[#f0a832] hover:opacity-75 transition-opacity no-underline">+ Add new</a>
+                            </div>
+                            {# Empty state — shown when no real products #}
+                            <div class="flex flex-col items-center justify-center py-12 px-6 text-center">
+                                <div class="w-14 h-14 rounded-2xl bg-[#b5601e]/10 grid place-items-center mb-4">
+                                    <svg class="w-7 h-7 text-[#b5601e]"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="1.5">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
+                                    </svg>
+                                </div>
+                                <p class="text-[0.88rem] font-medium text-[#e8e4dc]">No products yet</p>
+                                <p class="text-[0.78rem] text-[#6b6760] mt-1 max-w-[220px]">
+                                    Add your first product to start appearing in search results.
+                                </p>
+                                <a href="#"
+                                   class="mt-4 inline-flex items-center gap-1.5 bg-[#b5601e] hover:bg-[#d4860a] text-white text-[0.78rem] font-medium px-4 py-2.5 rounded-lg transition-colors no-underline">
+                                    <svg class="w-3 h-3" viewBox="0 0 12 12" fill="none">
+                                        <path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                    </svg>
+                                    Add your first product
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {# Right: store info + performance + description #}
+                    <div class="anim d-6 space-y-5">
+                        {# Store details #}
+                        <div class="rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07]">
+                                <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Store details</h3>
+                                <a href="#"
+                                   class="text-[0.72rem] text-[#f0a832] hover:opacity-75 transition-opacity no-underline">Edit</a>
+                            </div>
+                            {% for row in [
+                                {label:'Store name',   value: profile ? profile.storeName : '—'},
+                                {label:'Email',        value: user.email},
+                                {label:'Member since', value: profile ? profile.createdAt|date('F j, Y') : '—'},
+                                ] %}
+                                <div class="px-5 py-3.5 border-b border-white/[0.07]">
+                                    <p class="text-[0.63rem] font-semibold tracking-[0.08em] uppercase text-[#6b6760]">{{ row.label }}</p>
+                                    <p class="text-[0.83rem] text-[#e8e4dc] mt-1 break-all">{{ row.value }}</p>
+                                </div>
+                            {% endfor %}
+                            <div class="px-5 py-3.5">
+                                <p class="text-[0.63rem] font-semibold tracking-[0.08em] uppercase text-[#6b6760] mb-1">Status</p>
+                                {% if profile and profile.verified %}
+                                    <span class="inline-flex items-center gap-1 text-[0.78rem] text-[#22bfa3]">
+                                        <svg class="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M6 0a6 6 0 1 0 0 12A6 6 0 0 0 6 0zm2.77 4.44L5.55 7.95 3.5 5.9a.6.6 0 0 0-.85.85L5.1 9.2a.6.6 0 0 0 .9-.07l3.6-4.8a.6.6 0 0 0-.84-.84l.01.95z" />
+                                        </svg>
+                                        Verified seller
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1 text-[0.78rem] text-[#f0a832]">
+                                        <svg class="w-3 h-3"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2">
+                                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                                        </svg>
+                                        Pending review
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {# Performance bars #}
+                        <div class="rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="px-5 py-3.5 border-b border-white/[0.07]">
+                                <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Performance</h3>
+                            </div>
+                            {% for m in [
+                                {label:'Order fulfilment', pct:0},
+                                {label:'Response rate',    pct:0},
+                                {label:'Positive reviews', pct:0},
+                                ] %}
+                                <div class="px-5 py-3.5 border-b border-white/[0.07] last:border-b-0">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-[0.78rem] text-[#9c9790]">{{ m.label }}</span>
+                                        <span class="text-[0.78rem] font-medium text-[#e8e4dc]">{{ m.pct }}%</span>
+                                    </div>
+                                    <div class="h-[3px] rounded-full bg-[#3a3830] overflow-hidden">
+                                        <div class="perf-bar h-full rounded-full bg-[#b5601e]"
+                                             style="width:{{ m.pct }}%;
+                                                    --w:{{ m.pct }}%"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {# Store description #}
+                        <div class="rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="px-5 py-3.5 border-b border-white/[0.07]">
+                                <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Store description</h3>
+                            </div>
+                            <p class="px-5 py-4 text-[0.82rem] text-[#9c9790] leading-relaxed">
+                                {{ profile and profile.storeDescription
+                                ? profile.storeDescription|slice(0, 220) ~ (profile.storeDescription|length > 220 ? '…' : '')
+                                : 'No description set yet. Add one to help buyers find your store.' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            </turbo-frame>
+        </div>
+    </div>
+{% endblock %}

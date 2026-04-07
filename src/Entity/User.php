@@ -39,6 +39,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    private ?SellerProfile $sellerProfile = null;
+    private ?BuyerProfile $customerProfile = null;
+
 
     public function __construct()
     {
@@ -46,6 +49,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->status = UserStatus::ACTIVE;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+    }
+    //seller profile
+    public function getSellerProfile(): ?SellerProfile
+    {
+        return $this->sellerProfile;
+    }
+    //customer Profile
+    public function getCustomerProfile(): ?BuyerProfile
+    {
+        return $this->customerProfile;
     }
 
     public function getId(): ?int
@@ -87,17 +100,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->password_hash = $password_hash;
 
         return $this;
-    }
-    /**
-     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
-     * @return array<<missing>,string>
-     */
-    public function __serialize(): array
-    {
-        $data = (array) $this;
-        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
-
-        return $data;
     }
 
 

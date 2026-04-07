@@ -1,0 +1,264 @@
+{% extends 'base.html.twig' %}
+{% from 'customer/dashboard/partials/_sidebar.html.twig' import sidebar %}
+{% block title %}My Dashboard — Marketplace{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap"
+          rel="stylesheet">
+    <style>
+        .font-serif  { font-family: 'Instrument Serif', serif; }
+        body { font-family: 'DM Sans', sans-serif; }
+        @keyframes fade-up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+        .anim   { animation: fade-up .35s ease both; }
+        .d-1 { animation-delay: .04s; } .d-2 { animation-delay: .08s; }
+        .d-3 { animation-delay: .12s; } .d-4 { animation-delay: .16s; }
+        .d-5 { animation-delay: .22s; } .d-6 { animation-delay: .28s; }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="flex min-h-screen bg-[#0a0908] text-[#e8e4dc]"
+         data-controller="sidebar">
+        {# Mobile backdrop #}
+        <div data-sidebar-target="overlay"
+             data-action="click->sidebar#close"
+             class="hidden fixed inset-0 z-20 bg-black/60 lg:hidden"></div>
+        {# Sidebar #}
+        {{ sidebar(user, profile, 'app_dashboard', 'customer') }}
+        {# ── Main column ── #}
+        <div class="flex flex-col flex-1 min-w-0 overflow-x-hidden">
+            {# Top bar #}
+            <header class="sticky top-0 z-10 flex items-center justify-between px-5 lg:px-8 py-3.5 bg-[#0f0e0b] border-b border-white/[0.07]">
+                <div class="flex items-center gap-3">
+                    <button data-action="click->sidebar#open"
+                            class="lg:hidden grid place-items-center w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.07] text-[#9c9790] hover:text-[#e8e4dc] transition-colors cursor-pointer">
+                        <svg class="w-4 h-4"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8">
+                            <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="font-serif text-xl leading-none text-[#e8e4dc]">Dashboard</h1>
+                        <p class="text-[0.72rem] text-[#6b6760] mt-0.5">{{ "now"|date("l, F j, Y") }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="grid place-items-center w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.07] text-[#9c9790] hover:text-[#e8e4dc] transition-colors cursor-pointer">
+                        <svg class="w-3.5 h-3.5"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8">
+                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </button>
+                    <button class="relative grid place-items-center w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.07] text-[#9c9790] hover:text-[#e8e4dc] transition-colors cursor-pointer">
+                        <svg class="w-3.5 h-3.5"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                        <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#d4860a] border border-[#0f0e0b]"></span>
+                    </button>
+                    <div class="w-8 h-8 rounded-full grid place-items-center text-[0.7rem] font-semibold text-[#0a0908]"
+                         style="background:linear-gradient(135deg,#d4860a,#1a9e87)">{{ user.email|first|upper }}</div>
+                </div>
+            </header>
+            {# Content #}
+            <turbo-frame id="customer-main" class="flex-1">
+            <main class="p-5 lg:p-8 space-y-6">
+                {# Greeting #}
+                <div class="anim relative overflow-hidden rounded-xl bg-[#141210] border border-white/[0.07] px-6 py-5 flex flex-wrap items-center justify-between gap-4"
+                     style="background-image:linear-gradient(100deg,rgba(212,134,10,.06) 0%,transparent 55%)">
+                    <div>
+                        <h2 class="font-serif text-[1.4rem] text-[#e8e4dc] leading-snug">
+                            Good to see you, <em class="italic text-[#f0a832]">{{ profile ? profile.fullName|split(" ") |first : 'there' }}</em> 👋
+                        </h2>
+                        <p class="text-[0.82rem] text-[#6b6760] mt-1">
+                            {{ user.orders is defined ? user.orders|length : 0 }} orders total · 2 items in wishlist
+                        </p>
+                    </div>
+                    <a href="#"
+                       class="inline-flex items-center gap-1.5 shrink-0 bg-[#d4860a] hover:bg-[#f0a832] text-[#0a0908] text-[0.78rem] font-medium px-4 py-2.5 rounded-lg transition-colors no-underline">
+                        Shop now
+                        <svg class="w-3 h-3" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </a>
+                </div>
+                {# Stats #}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {% for i, s in [
+                        { label:'Total orders',  value: user.orders is defined ? user.orders|length : 0, sub:'Lifetime purchases', color:'#d4860a', icon:'<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />' },
+                        { label:'Completed',     value: 0,  sub:'↑ 12% this month',  color:'#1a9e87', icon:'<polyline points="20 6 9 17 4 12" />' },
+                        { label:'In transit',    value: 0,  sub:'Arriving soon',      color:'#3b8bd4', icon:'<rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />' },
+                        { label:'Wishlist',      value: 2,  sub:'Items saved',        color:'#e05c4b', icon:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />' },
+                        ] %}
+                        <div class="d-{{ i + 1 }} anim relative overflow-hidden rounded-xl bg-[#141210] border border-white/[0.07] p-4 lg:p-5">
+                            <div class="absolute inset-x-0 top-0 h-0.5 rounded-t-xl"
+                                 style="background:{{ s.color }}"></div>
+                            <div class="flex items-start justify-between gap-2 mb-3">
+                                <p class="text-[0.63rem] font-semibold tracking-[0.1em] uppercase text-[#6b6760]">{{ s.label }}</p>
+                                <div class="w-7 h-7 rounded-lg grid place-items-center shrink-0"
+                                     style="background:{{ s.color }}1a">
+                                    <svg class="w-3.5 h-3.5"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="{{ s.color }}"
+                                         stroke-width="1.7">
+                                        {{ s.icon|raw }}
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="font-serif text-[2rem] leading-none text-[#e8e4dc]">{{ s.value }}</p>
+                            <p class="text-[0.7rem] text-[#6b6760] mt-1.5">{{ s.sub }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                {# Two column #}
+                <div class="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
+                    {# Orders table #}
+                    <div class="anim d-5 rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                        <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07]">
+                            <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Recent orders</h3>
+                            <a href="#"
+                               class="text-[0.72rem] text-[#d4860a] hover:opacity-75 transition-opacity no-underline">View all →</a>
+                        </div>
+                        <div class="hidden sm:grid grid-cols-[1fr_90px_90px_80px] gap-4 px-5 py-2.5 border-b border-white/[0.07] text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[#6b6760]">
+                            <span>Item</span><span>Date</span><span>Status</span><span class="text-right">Total</span>
+                        </div>
+                        {% set badge = {
+                            "delivered": "bg-[#1a9e87]/15 text-[#22bfa3]",
+                            "shipped": "bg-[#3b8bd4]/15 text-[#71b3e8]",
+                            "processing": "bg-[#d4860a]/15 text-[#f0a832]",
+                            "pending": "bg-[#b5601e]/15 text-[#e0924a]",
+                            "cancelled": "bg-[#e05c4b]/12 text-[#f09080]"
+                        } %}
+                        {% set sample = [
+                            {
+                                "icon": "👟",
+                                "name": "Nike Air Max 90",
+                                "date": "Dec 1",
+                                "status": "delivered",
+                                "total": "₱4,299"
+                            },
+                            {
+                                "icon": "📱",
+                                "name": "iPhone 15 Case Bundle",
+                                "date": "Nov 28",
+                                "status": "delivered",
+                                "total": "₱899"
+                            },
+                            {
+                                "icon": "🎧",
+                                "name": "Sony WH-1000XM5",
+                                "date": "Nov 22",
+                                "status": "shipped",
+                                "total": "₱18,500"
+                            },
+                            {
+                                "icon": "👕",
+                                "name": "Uniqlo Fleece Jacket (L)",
+                                "date": "Nov 18",
+                                "status": "processing",
+                                "total": "₱2,100"
+                            }
+                        ] %}
+                        {% set orders = user.orders is defined and user.orders|length > 0 ? user.orders|slice(0,6) : sample %}
+                        {% set isReal = user.orders is defined and user.orders|length > 0 %}
+                        {% for row in orders %}
+                            <div class="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_90px_90px_80px] items-center gap-4 px-5 py-3.5 border-b border-white/[0.07] last:border-b-0 hover:bg-[#1a1815] transition-colors">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-9 h-9 rounded-lg shrink-0 grid place-items-center text-base bg-[#1a1815] border border-white/[0.07]">
+                                        {{ isReal ? '📦' : row.icon }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-[0.82rem] font-medium text-[#e8e4dc] truncate">{{ isReal ? 'Order #' ~ row.id : row.name }}</p>
+                                        <p class="text-[0.7rem] text-[#6b6760] mt-0.5">{{ isReal ? row.orderItems|length ~ ' item(s) ' : '' }}</p>
+                                    </div>
+                                </div>
+                                <span class="hidden sm:block text-[0.75rem] text-[#6b6760]">{{ isReal ? row.createdAt|date("M j") : row.date }}</span>
+                                <span class="hidden sm:block">
+                                    {% set st = isReal ? row.status : row.status %}
+                                    <span class="text-[0.6rem] font-semibold uppercase tracking-wider px-2 py-1 rounded-full {{ badge[st] ?? 'bg-white/10 text-[#9c9790]' }}">{{ st }}</span>
+                                </span>
+                                <div class="text-right">
+                                    <p class="text-[0.85rem] font-medium text-[#e8e4dc]">{{ isReal ? '₱' ~ row.total|number_format(2) : row.total }}</p>
+                                    {% set st2 = isReal ? row.status : row.status %}
+                                    <span class="sm:hidden mt-0.5 inline-block text-[0.6rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full {{ badge[st2] ?? 'bg-white/10 text-[#9c9790]' }}">{{ st2 }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {# Right sidebar #}
+                    <div class="anim d-6 space-y-5">
+                        {# Account details #}
+                        <div class="rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07]">
+                                <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Account details</h3>
+                                <a href="#"
+                                   class="text-[0.72rem] text-[#d4860a] hover:opacity-75 transition-opacity no-underline">Edit</a>
+                            </div>
+                            {% for row in [
+                                {label:'Full name', value: profile ? profile.fullName : '—',   icon:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />'},
+                                {label:'Email',     value: user.email,                          icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />'},
+                                {label:'Phone',     value: profile ? profile.phone : '—',      icon:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12 12 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12 12 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />'},
+                                {label:'Address',   value: profile ? profile.address : '—',    icon:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />'},
+                                ] %}
+                                <div class="flex items-start gap-3 px-5 py-3.5 border-b border-white/[0.07] last:border-b-0">
+                                    <div class="w-7 h-7 rounded-lg shrink-0 grid place-items-center bg-[#1a1815] mt-0.5">
+                                        <svg class="w-3.5 h-3.5 text-[#d4860a]"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="1.7">
+                                            {{ row.icon|raw }}
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-[0.63rem] font-semibold tracking-[0.08em] uppercase text-[#6b6760]">{{ row.label }}</p>
+                                        <p class="text-[0.83rem] text-[#e8e4dc] mt-0.5 break-words">{{ row.value }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {# Recommended #}
+                        <div class="rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07]">
+                                <h3 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Recommended</h3>
+                                <a href="#"
+                                   class="text-[0.72rem] text-[#d4860a] hover:opacity-75 transition-opacity no-underline">Browse all →</a>
+                            </div>
+                            <div class="grid grid-cols-2 gap-px bg-white/[0.07]">
+                                {% for p in [
+                                    {icon:'💻',name:'MacBook Stand',    price:'₱1,299', rating:'4.8'},
+                                    {icon:'🖱️',name:'MX Master 3',      price:'₱4,500', rating:'4.9'},
+                                    {icon:'⌨️',name:'Keychron K3',      price:'₱3,800', rating:'4.7'},
+                                    {icon:'🎒',name:'Peak Design Pack', price:'₱12,000',rating:'4.9'},
+                                    ] %}
+                                    <button class="flex items-center gap-2.5 p-3.5 bg-[#141210] hover:bg-[#1a1815] transition-colors text-left w-full cursor-pointer">
+                                        <div class="w-10 h-10 rounded-lg shrink-0 grid place-items-center text-xl bg-[#1a1815] border border-white/[0.07]">
+                                            {{ p.icon }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[0.78rem] font-medium text-[#e8e4dc] truncate leading-tight">{{ p.name }}</p>
+                                            <p class="text-[0.72rem] text-[#f0a832] mt-0.5">{{ p.price }}</p>
+                                            <p class="text-[0.65rem] text-[#6b6760]">⭐ {{ p.rating }}</p>
+                                        </div>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            </turbo-frame>
+        </div>
+    </div>
+{% endblock %}
