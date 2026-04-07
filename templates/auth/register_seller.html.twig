@@ -1,10 +1,67 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Hello RegistrationController!{% endblock %}
-
+{% block title %}Create Seller Account{% endblock %}
 {% block body %}
-<div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-<h1>
-</h1>
-</div>
+    <div class="min-h-screen bg-slate-950">
+        <div class="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
+            <div class="mx-auto max-w-xl">
+                <a href="{{ path("home") }}"
+                   class="text-sm text-slate-300 hover:text-white">← Back to marketplace</a>
+                <h1 class="mt-6 text-3xl font-semibold tracking-tight">Create your customer account</h1>
+                <p class="mt-2 text-sm text-slate-300">Shop faster, track orders, and save favorites.</p>
+                <div class="mt-8 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+                    {{ form_start(registrationForm, {attr: {class: 'space-y-4' }}) }}
+                        <label class="block text-sm font-medium text-slate-200">Full Name</label>
+                        {{ form_widget(registrationForm.fullName, {
+                                                attr: {
+                                                class: 'mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60',
+                                                }}) }}
+                        {{ form_errors(registrationForm.fullName) }}
+                        <label class="block text-sm font-medium text-slate-200">Store Name</label>
+                        {{ form_widget(registrationForm.storeName, {attr: {
+                                                class: 'mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60',
+                                                }}) }}
+                        {{ form_errors(registrationForm.storeName) }}
+                        <label class="block text-sm font-medium text-slate-200">Store Description</label>
+                        {{ form_widget(registrationForm.storeDescription, {attr: {
+                                                class: 'mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60',
+                                                }}) }}
+                        {{ form_errors(registrationForm.storeDescription) }}
+                        <label class="block text-sm font-medium text-slate-200">Business Email Address</label>
+                        {{ form_widget(registrationForm.email, {attr: {
+                                                class: 'mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60',
+                                                placeholder: 'you@example.com',
+                                                }}) }}
+                        {{ form_errors(registrationForm.email) }}
+                        <label class="block text-sm font-medium text-slate-200">Password</label>
+                        {{ form_widget(registrationForm.password.first, {attr: {
+                                                class: 'mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60',
+                                                }}) }}
+                        {{ form_errors(registrationForm.password.first) }}
+                        {{ form_widget(registrationForm.password.second, {attr: {
+                                                class: 'mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60',
+                                                }}) }}
+                        {{ form_errors(registrationForm.password.second) }}
+                        <div class="flex items-start gap-2">
+                            {{ form_widget(registrationForm.agreeTerms, {attr: {
+                                                        class: 'mt-1 rounded border-white/20 bg-slate-900/60 text-cyan-400 focus:ring-cyan-400/60',
+                                                        }}) }}
+                            <div class="text-sm text-slate-300">
+                                <p class="font-medium text-slate-200">Agree to terms</p>
+                                <p class="text-slate-400">You agree to our Terms and Privacy Policy.</p>
+                            </div>
+                        </div>
+                        {{ form_errors(registrationForm.agreeTerms) }}
+                        <button type="submit"
+                                class="w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-200">
+                            Create account
+                        </button>
+                    {{ form_end(registrationForm) }}
+                    <p class="mt-6 text-sm text-slate-400">
+                        Already have an account?
+                        <a class="font-semibold text-cyan-200 hover:text-cyan-100" href="">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-950">
+    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-xl">
+            <a href="{{ path('home') }}" class="text-sm text-slate-300 hover:text-white">← Back to marketplace</a>
+
+            <h1 class="mt-6 text-3xl font-semibold tracking-tight">Sign in to your account<h1>
+                    <p class="mt-2 text-sm text-slate-300">
+                        Shop faster, track orders, and save favorites.
+                    </p>
+
+                    <div class="mt-8 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+                        {% if error %}
+                        <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+                            {{ error.messageKey|trans(error.messageData, 'security') }}
+                        </div>
+                        {% endif %}
+                        <form method="post" class="space-y-4">
+                            <label class="block text-sm font-medium text-slate-200">Email</label>
+                            <twig:Input type="email" name="email" id="email"
+                                class='mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60' />
+
+                            <label class="block text-sm font-medium text-slate-200">Password</label>
+                            <twig:Input type="password" name="password" id="password"
+                                class='mt-2 w-full rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-100 ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/60' />
+
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                            <button type="submit"
+                                class="w-full space-y-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-200">
+                                Sign In
+                            </button>
+                        </form>
+
+                    </div>
+
+                    <div class="mt-8 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+
+                        <p class="mt-6 text-sm text-slate-400">
+                            Don't have an account yet?
+                            <a class="font-semibold text-cyan-200 hover:text-cyan-100" href="">Sign Up</a>
+                        </p>
+                    </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

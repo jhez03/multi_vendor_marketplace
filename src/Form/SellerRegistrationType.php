@@ -33,6 +33,20 @@ class SellerRegistrationType extends AbstractType
                     new Assert\Length(max: 180, maxMessage: 'Email cannot be longer than {{ limit }} characters'),
                 ],
             ])
+            ->add('fullName', TextType::class, [
+                'label' => 'Full Name',
+                'mapped' => false,
+                'attr' => ['placeholder' => 'Enter your full name'],
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Please enter your full name'),
+                    new Assert\Length(
+                        min: 2,
+                        max: 255,
+                        minMessage: 'Your full name must be at least {{ limit }} characters long',
+                        maxMessage: 'Your full name cannot be longer than {{ limit }} characters',
+                    ),
+                ],
+            ])
             ->add('storeName', TextType::class, [
                 'label' => 'Store name',
                 'mapped' => false,
@@ -67,7 +81,7 @@ class SellerRegistrationType extends AbstractType
                     ),
                 ],
             ])
-            ->add('plainPassword', RepeatedType::class, [
+            ->add('password', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'mapped' => false,
                 'first_options' => [
@@ -107,10 +121,10 @@ class SellerRegistrationType extends AbstractType
             ]);
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            'data_class' => SellerProfile::class,
-        ]);
-    }
+    // public function configureOptions(OptionsResolver $resolver): void
+    // {
+    //     $resolver->setDefaults([
+    //         'data_class' => SellerProfile::class,
+    //     ]);
+    // }
 }
