@@ -23,4 +23,10 @@ final class DashboardController extends AbstractController
 
         return $this->render('login/index.html.twig');
     }
+    #[Route('/deny', name: 'access_denied')]
+    public function deny(): Response
+    {
+        return $this->render('access_deny/404.html.twig', [
+        ]);
+    }
 }

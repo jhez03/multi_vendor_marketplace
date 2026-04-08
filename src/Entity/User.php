@@ -39,7 +39,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: SellerProfile::class, cascade: ['persist', 'remove'])]
     private ?SellerProfile $sellerProfile = null;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: BuyerProfile::class, cascade: ['persist', 'remove'])]
     private ?BuyerProfile $customerProfile = null;
 
 
@@ -153,8 +156,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_CUSTOMER
-        $roles = ['ROLE_CUSTOMER', 'ROLE_USER'];
+        // guarantee every user at least has ROLE_CUSTOMER and ROLE_USER
+        $roles[] = 'ROLE_CUSTOMER';
+        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }

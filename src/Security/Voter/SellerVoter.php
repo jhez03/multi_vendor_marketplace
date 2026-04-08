@@ -28,6 +28,7 @@ final class SellerVoter extends Voter
 
         $user = $token->getUser();
 
+
         if (!$user instanceof User) {
             return false;
         }
@@ -39,6 +40,7 @@ final class SellerVoter extends Voter
         if (!in_array('ROLE_SELLER', $user->getRoles(), true)) {
             return false;
         }
+
 
         $sellerProfile = $user->getSellerProfile();
 
