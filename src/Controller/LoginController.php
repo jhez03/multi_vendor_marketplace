@@ -13,9 +13,6 @@ final class LoginController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authUtils): Response
     {
-        if ($this->getUser()) {
-            return $this->redirectToRoute('/');
-        }
 
         $form = $this->createForm(LoginType::class);
         return $this->render('login/index.html.twig', [

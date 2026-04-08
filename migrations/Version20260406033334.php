@@ -28,7 +28,5 @@ final class Version20260406033334 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE shop DROP FOREIGN KEY FK_AC6A4CA28DE820D9');
-        $this->addSql('DROP INDEX UNIQ_AC6A4CA28DE820D9 ON shop');
-        $this->addSql('ALTER TABLE shop DROP store_name, DROP store_description, DROP logo_url, DROP status, DROP rating, DROP rating_count, DROP created_at, DROP seller_id');
     }
 }

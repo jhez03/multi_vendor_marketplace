@@ -1,0 +1,238 @@
+{#
+  _sidebar.html.twig — shared sidebar macro
+  Usage: {% from 'dashboard/_sidebar.html.twig' import sidebar %}
+         {{ sidebar(user, activeRoute, role) }}
+  role: 'customer' | 'seller'
+#}
+{% macro sidebar(user, profile, activeRoute, role) %}
+    {% set isSeller = role == 'seller' %}
+    {% set accent = isSeller ? '#b5601e' : '#d4860a' %}
+    {% set accentHover = isSeller ? 'hover:text-[#b5601e]' : 'hover:text-[#d4860a]' %}
+    {% set activeBg = isSeller ? 'bg-[#b5601e]/[0.12] text-[#f0a832]' : 'bg-[#d4860a]/[0.12] text-[#f0a832]' %}
+    <nav data-sidebar-target="drawer"
+         class="fixed lg:static inset-y-0 left-0 z-30 w-56 shrink-0 flex flex-col bg-[#0f0e0b] border-r border-white/[0.07] -translate-x-full lg:translate-x-0 transition-transform duration-200 h-screen overflow-y-auto">
+        {# ── Brand / store header ── #}
+        <div class="px-5 pt-6 pb-5 border-b border-white/[0.07] shrink-0">
+            <p class="text-[0.6rem] font-medium tracking-[0.22em] uppercase mb-1"
+               style="color:{{ accent }}">{{ isSeller ? 'Seller centre' : 'Marketplace' }}</p>
+            <p class="text-[#e8e4dc] font-semibold text-sm truncate leading-snug">
+                {{ isSeller ? (profile ? profile.storeName : 'My Store') : (profile ? profile.fullName : user.email) }}
+            </p>
+            {% if isSeller %}
+                {% if profile and profile.verified %}
+                    <span class="inline-flex items-center gap-1 mt-1.5 text-[0.6rem] font-medium text-[#22bfa3]">
+                        <svg class="w-2.5 h-2.5" viewBox="0 0 10 10" fill="currentColor">
+                            <path d="M5 0a5 5 0 1 0 0 10A5 5 0 0 0 5 0zm2.3 3.7-2.6 3.4L2.7 5.5a.5.5 0 0 0-.7.7l1.5 1.5a.5.5 0 0 0 .75-.06l3-4a.5.5 0 0 0-.8-.6-.5.5 0 0 0-.15.6z" />
+                        </svg>
+                        Verified seller
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 mt-1.5 text-[0.6rem] font-medium text-[#f0a832]">
+                        <svg class="w-2.5 h-2.5"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        Pending review
+                    </span>
+                {% endif %}
+            {% endif %}
+        </div>
+        {# ── Nav items ── #}
+        <div class="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
+            {% if isSeller %}
+                {# — Seller nav — #}
+                <p class="px-2 pt-2 pb-1 text-[0.58rem] font-semibold tracking-[0.15em] uppercase text-[#6b6760]">Store</p>
+                <a href="{{ path("app_dashboard") }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] no-underline transition-colors {{ activeRoute == 'app_dashboard' ? activeBg : 'text-[#9c9790] hover:bg-[#1a1815] hover:text-[#e8e4dc]' }}">
+                    <svg class="w-4 h-4 shrink-0 {{ activeRoute == 'app_dashboard' ? '' : 'opacity-60' }}"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
+                    </svg>
+                    Overview
+                </a>
+                <a href="{{ path("app_seller_orders") ?? '#' }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] no-underline transition-colors {{ activeRoute == 'app_seller_orders' ? activeBg : 'text-[#9c9790] hover:bg-[#1a1815] hover:text-[#e8e4dc]' }}">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                    Orders
+                    <span class="ml-auto text-[0.58rem] font-semibold bg-[#e05c4b] text-white px-1.5 py-0.5 rounded-full">5</span>
+                </a>
+                <a href="{{ path("app_product_new") ?? '#' }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] no-underline transition-colors {{ activeRoute == 'app_product_new' ? activeBg : 'text-[#9c9790] hover:bg-[#1a1815] hover:text-[#e8e4dc]' }}">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
+                    </svg>
+                    Products
+                </a>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    Revenue
+                </a>
+                <p class="px-2 pt-4 pb-1 text-[0.58rem] font-semibold tracking-[0.15em] uppercase text-[#6b6760]">Growth</p>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                    Analytics
+                </a>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    Reviews
+                </a>
+            {% else %}
+                {# — Customer nav — #}
+                <p class="px-2 pt-2 pb-1 text-[0.58rem] font-semibold tracking-[0.15em] uppercase text-[#6b6760]">Shop</p>
+                <a href="{{ path("app_dashboard") }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] no-underline transition-colors {{ activeRoute == 'app_dashboard' ? activeBg : 'text-[#9c9790] hover:bg-[#1a1815] hover:text-[#e8e4dc]' }}">
+                    <svg class="w-4 h-4 shrink-0 {{ activeRoute == 'app_dashboard' ? '' : 'opacity-60' }}"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
+                    </svg>
+                    Overview
+                </a>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                    My Orders
+                    <span class="ml-auto text-[0.58rem] font-semibold bg-[#d4860a] text-[#0a0908] px-1.5 py-0.5 rounded-full">3</span>
+                </a>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                    Wishlist
+                </a>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                    </svg>
+                    Cart
+                </a>
+                <p class="px-2 pt-4 pb-1 text-[0.58rem] font-semibold tracking-[0.15em] uppercase text-[#6b6760]">Account</p>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Profile
+                </a>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    Addresses
+                </a>
+                <a href="#"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.83rem] text-[#9c9790] no-underline transition-colors hover:bg-[#1a1815] hover:text-[#e8e4dc]">
+                    <svg class="w-4 h-4 shrink-0 opacity-60"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7">
+                        <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+                    </svg>
+                    Payment
+                </a>
+            {% endif %}
+        </div>
+        {# ── User footer ── #}
+        <div class="shrink-0 border-t border-white/[0.07] p-3">
+            <div class="flex items-center gap-2.5 px-2 py-1.5 mb-1">
+                <div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-[0.68rem] font-semibold text-[#0a0908]"
+                     style="background: linear-gradient(135deg, {{ accent }}, #1a9e87)">
+                    {{ user.email|first|upper }}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[0.8rem] font-medium text-[#e8e4dc] truncate leading-tight">
+                        {{ isSeller ? (profile ? profile.storeName : 'Seller') : (profile ? profile.fullName : 'Customer') }}
+                    </p>
+                    <p class="text-[0.65rem] text-[#6b6760] leading-tight">{{ isSeller ? 'Seller' : 'Buyer' }} account</p>
+                </div>
+            </div>
+            <a href="{{ path("app_logout") }}"
+               data-turbo="false"
+               class="flex items-center gap-2 px-3 py-2 rounded-lg text-[0.8rem] text-[#6b6760] no-underline transition-colors hover:text-red-400 hover:bg-red-500/[0.08]">
+                <svg class="w-3.5 h-3.5 shrink-0"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sign out
+            </a>
+        </div>
+    </nav>
+{% endmacro %}
