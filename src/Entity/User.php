@@ -39,7 +39,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: SellerProfile::class, cascade: ['persist', 'remove'])]
     private ?SellerProfile $sellerProfile = null;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: BuyerProfile::class, cascade: ['persist', 'remove'])]
     private ?BuyerProfile $customerProfile = null;
 
 
