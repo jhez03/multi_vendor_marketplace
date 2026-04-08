@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ShopRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -14,9 +15,12 @@ class Shop
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: SellerProfile::class)]
-    #[ORM\JoinColumn(name: "seller_id", referencedColumnName: "id", nullable: false, unique: false)]
-    private ?SellerProfile $sellerId = null;
+    #[ORM\OneToOne(targetEntity: SellerProfile::class)]
+    #[ORM\JoinColumn(name: "seller_id", referencedColumnName: "id", nullable: false, unique: true)]
+    private ?SellerProfile $seller = null;
+
+    #[ORM\OneToMany(mappedBy: "shop", targetEntity: Product::class, cascade: ["persist", "remove"])]
+    private ?Collection $product = null;
 
     #[ORM\Column(length: 255)]
     private ?string $storeName = null;
@@ -50,14 +54,14 @@ class Shop
         return $this->id;
     }
 
-    public function getSellerId(): ?SellerProfile
+    public function getSeller(): ?SellerProfile
     {
-        return $this->sellerId;
+        return $this->seller;
     }
 
-    public function setSellerId(SellerProfile $sellerId): static
+    public function setSeller(SellerProfile $seller): static
     {
-        $this->sellerId = $sellerId;
+        $this->seller = $seller;
 
         return $this;
     }

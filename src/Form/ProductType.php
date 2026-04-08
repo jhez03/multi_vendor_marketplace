@@ -2,9 +2,13 @@
 
 namespace App\Form;
 
+use App\Entity\ProductStatus;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -16,25 +20,75 @@ class ProductType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class)
-            ->add('description', TextareaType::class)
-            ->add('price', IntegerType::class)
-            ->add('imageFile', FileType::class, [
-                'mapped' => false,
-                'required' => false,
+            ->add('name', TextType::class, [
+                'label' => 'Product Name',
                 'constraints' => [
-                    new Assert\Image(
-                        maxSize: '2M'
+                    new Assert\NotBlank(message: 'Product name is required.'),
+                    new Assert\Length(
+                        min: 3,
+                        max: 255,
+                        minMessage: 'Name must be at least {{ limit }} characters',
+                        maxMessage: 'Name cannot exceed {{ limit }} characters',
                     ),
                 ],
+                'attr' => ['placeholder' => 'e.g. Wireless Bluetooth Headphones'],
             ])
+            ->add('description', TextareaType::class, [
+                'label'       => 'Description',
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Please describe your product'),
+                    new Assert\Length(
+                        min: 20,
+                        max: 5000,
+                        minMessage: 'Description must be at least {{ limit }} characters',
+                        maxMessage: 'Description cannot exceed {{ limit }} characters',
+                    ),
+                ],
+                'attr' => [
+                    'placeholder' => 'Describe your product in detail — features, materials, dimensions…',
+                    'rows'        => 5,
+                ],
+            ])
+            ->add('price', MoneyType::class, [
+                'label'       => 'Base price',
+                'currency'    => 'PHP',
+                'divisor'     => 100, // store in centavos
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Please set a price'),
+                    new Assert\Positive(message: 'Price must be greater than zero'),
+                ],
+                'attr' => ['placeholder' => '0.00'],
+            ])
+            ->add('status', EnumType::class, [
+                'class'  => ProductStatus::class,
+                'label'   => 'Listing status',
+                'choice_label' => function (ProductStatus $choice) {
+                    return ucfirst($choice->value); // "Active", "Inactive"
+                },
+                'placeholder' => 'Select status',
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Please choose a status'),
+                ],
+            ])
+            ->add('category', TextType::class, [
+                'label'    => 'Category',
+                'mapped'   => false,
+                'required' => false,
+                'attr'     => ['placeholder' => 'e.g. Electronics > Headphones'],
+            ])
+            ->add('imageFile', FileType::class, [
+                'label'    => 'Product image',
+                'mapped'   => false,
+                'required' => false,
+                'constraints' => [
+                    new Assert\File(
+                        maxSize: '5M',
+                        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+                        mimeTypesMessage: 'Please upload a JPG, PNG, or WebP image',
+                        maxSizeMessage: 'Image must be smaller than 5 MB',
+                    ),
+                ],
+            ]);
         ;
-    }
-
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            // Configure your form options here
-        ]);
     }
 }

@@ -19,6 +19,10 @@ class SellerProfile
     #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id", nullable: false, unique: true)]
     private ?User $user = null;
 
+
+    #[ORM\OneToOne(mappedBy: 'seller', targetEntity: Shop::class, cascade: ['persist', 'remove'])]
+    private ?Shop $store = null;
+
     #[ORM\Column(length: 255)]
     private ?string $displayName = null;
 
@@ -36,6 +40,11 @@ class SellerProfile
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getStore(): ?Shop
+    {
+        return $this->store;
     }
 
     public function getUser(): ?User
