@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\ProductImageRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductImageRepository::class)]
@@ -14,12 +13,18 @@ class ProductImage
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Product::class)]
+    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: "productImages")]
     #[ORM\JoinColumn(name: "product_id", referencedColumnName: "id", nullable: false, unique: false)]
-    private ?string $productId = null;
+    private ?Product $product = null;
 
     #[ORM\Column(length: 255)]
     private ?string $url = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $sortOrder = null;
+
+    #[ORM\Column]
+    private ?bool $isPrimary = true;
 
 
     public function getId(): ?int
@@ -27,14 +32,14 @@ class ProductImage
         return $this->id;
     }
 
-    public function getProductId(): ?Product
+    public function getProduct(): ?Product
     {
-        return $this->productId;
+        return $this->product;
     }
 
-    public function setProductId(Product $productId): Product
+    public function setProduct(Product $product): self
     {
-        $this->productId = $productId;
+        $this->product = $product;
 
         return $this;
     }
@@ -47,6 +52,30 @@ class ProductImage
     public function setUrl(string $url): static
     {
         $this->url = $url;
+
+        return $this;
+    }
+
+    public function getSortOrder(): ?int
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(int $sortOrder): static
+    {
+        $this->sortOrder = $sortOrder;
+
+        return $this;
+    }
+
+    public function isPrimary(): ?bool
+    {
+        return $this->isPrimary;
+    }
+
+    public function setIsPrimary(bool $isPrimary): static
+    {
+        $this->isPrimary = $isPrimary;
 
         return $this;
     }
