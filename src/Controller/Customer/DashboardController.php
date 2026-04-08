@@ -13,13 +13,14 @@ final class DashboardController extends AbstractController
     #[Route('/customer/dashboard', name: 'customer_dashboard')]
     public function index(): Response
     {
-        $user = new User();
-        if ($this->isGranted('ROLE_SELLER')) {
-            return $this->render('customer/dashboard/index.html.twig', [
-                'controller_name' => 'Customer/DashboardController',
-                'user' => $this->getUser(),
-                'profile' => $user->getCustomerProfile(),
-            ]);
+        if (!$this->isGranted('ROLE_CUSTOMER')) {
+            return $this->redirectToRoute('app_dashboard');
         }
+        $user = new User();
+        return $this->render('customer/dashboard/index.html.twig', [
+            'controller_name' => 'Customer/DashboardController',
+            'user' => $this->getUser(),
+            'profile' => $user->getCustomerProfile(),
+        ]);
     }
 }

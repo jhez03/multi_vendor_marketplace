@@ -21,8 +21,6 @@ final class DashboardController extends AbstractController
             return $this->redirectToRoute('customer_dashboard');
         }
 
-        return $this->render('login/index.html.twig', [
-            'error' => 'You do not have access to any dashboard.',
-        ]);
+        return $this->render('login/index.html.twig');
     }
 }

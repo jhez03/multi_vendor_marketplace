@@ -55,7 +55,7 @@ class Shop
         return $this->sellerId;
     }
 
-    public function setSellerId(SellerProfile $sellerId): SellerProfile
+    public function setSellerId(SellerProfile $sellerId): static
     {
         $this->sellerId = $sellerId;
 

@@ -14,6 +14,10 @@ final class DashboardController extends AbstractController
     public function index(): Response
     {
 
+        //check if no access controll
+        if (!$this->isGranted('ROLE_SELLER')) {
+            return $this->redirectToRoute('app_dashboard');
+        }
         $user = new User();
 
         return $this->render('seller/dashboard/index.html.twig', [
@@ -22,10 +26,10 @@ final class DashboardController extends AbstractController
             'profile' => $user->getSellerProfile(),
         ]);
     }
-    #[Route('/seller/pending', name: 'seller_deny')]
+    #[Route('/deny', name: 'access_denied')]
     public function deny(): Response
     {
-        return $this->render('seller/deny.html.twig', [
+        return $this->render('access_deny/404.html.twig', [
         ]);
     }
 }

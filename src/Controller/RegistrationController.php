@@ -36,11 +36,12 @@ class RegistrationController extends AbstractController
                 return $this->redirectToRoute('register_customer');
             }
 
-            //set role
-            $user->setRoles(['ROLE_CUSTOMER']);
-
 
             $user->setPassword($passwordHasher->hashPassword($user, $form->get('password')->getData()));
+
+            $roles = $user->getRoles();
+            $user->setRoles($roles);
+
 
             $profile = new BuyerProfile();
             $profile->setUser($user);
@@ -87,9 +88,14 @@ class RegistrationController extends AbstractController
             $user->setPassword($passwordHasher->hashPassword($user, $form->get('password')->getData()));
 
             $profile = new SellerProfile();
+            //add to customer profile too
+            $cprofile = new BuyerProfile();
+
             $shop = new Shop();
             $profile->setUser($user);
+            $cprofile ->setUser($user);
             $profile->setDisplayName($form->get('fullName')->getData());
+            $cprofile->setFullName($form->get('fullName')->getData());
 
             $shop->setSellerId($profile);
             $shop->setStoreName($form->get('storeName')->getData());
@@ -100,6 +106,7 @@ class RegistrationController extends AbstractController
             //save
             $em->persist($user);
             $em->persist($profile);
+            $em->persist($cprofile);
             $em->persist($shop);
             $em->flush();
 
