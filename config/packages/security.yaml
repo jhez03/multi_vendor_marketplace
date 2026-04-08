@@ -42,7 +42,6 @@ security:
             # https://symfony.com/doc/current/security/impersonating_user.html
             # switch_user: true
 
-    access_denied_url: /deny
     # Note: Only the *first* matching rule is applied
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
@@ -50,6 +49,9 @@ security:
           - { path: ^/login, roles: PUBLIC_ACCESS }
           - { path: ^/register, roles: PUBLIC_ACCESS }
           - { path: ^/dashboard, roles: ROLE_USER }
+            # ── Seller-only area ────────────────────────────────────────
+          - { path: ^/seller,   roles: ROLE_SELLER }
+    access_denied_url: /deny
 
 
 when@test:
