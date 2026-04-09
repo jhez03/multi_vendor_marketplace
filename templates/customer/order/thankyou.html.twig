@@ -1,0 +1,179 @@
+{% extends 'base.html.twig' %}
+{% block title %}Order Confirmed — {{ order.orderNumber }} — Marketplace{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap"
+          rel="stylesheet">
+    <style>
+        .font-serif { font-family: 'Instrument Serif', serif; }
+        body { font-family: 'DM Sans', sans-serif; }
+        @keyframes fade-up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+        @keyframes pop    { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+        .anim  { animation: fade-up .4s ease both; }
+        .d-1{animation-delay:.06s;} .d-2{animation-delay:.12s;} .d-3{animation-delay:.18s;} .d-4{animation-delay:.24s;}
+        .pop { animation: pop .5s ease both; }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="relative overflow-hidden min-h-screen bg-slate-950">
+        {% include 'partials/_header.html.twig' %}
+        <main class="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-14">
+            {# Success icon #}
+            <div class="pop flex justify-center mb-8">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center {% if payment and payment.status.value == 'succeeded' %} bg-cyan-400/15 ring-4 ring-cyan-400/30 {% elseif payment and payment.status.value == 'failed' %} bg-red-400/15 ring-4 ring-red-400/30 {% else %} bg-amber-400/15 ring-4 ring-amber-400/30 {% endif %}">
+                    {% if payment and payment.status.value == 'succeeded' %}
+                        <svg class="w-9 h-9 text-cyan-400"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    {% elseif payment and payment.status.value == 'failed' %}
+                        <svg class="w-9 h-9 text-red-400"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                    {% else %}
+                        <svg class="w-9 h-9 text-amber-400"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                    {% endif %}
+                </div>
+            </div>
+            {# Heading #}
+            <div class="anim d-1 text-center mb-10">
+                {% if payment and payment.status.value == 'succeeded' %}
+                    <h1 class="font-serif text-4xl sm:text-5xl text-slate-50 mb-3">Order confirmed!</h1>
+                    <p class="text-slate-300">Your payment was successful. We'll send you updates as your order is processed.</p>
+                {% elseif payment and payment.status.value == 'failed' %}
+                    <h1 class="font-serif text-4xl sm:text-5xl text-slate-50 mb-3">Payment failed</h1>
+                    <p class="text-slate-300">Your order was not processed. Please try again or contact support.</p>
+                {% else %}
+                    <h1 class="font-serif text-4xl sm:text-5xl text-slate-50 mb-3">Order received</h1>
+                    <p class="text-slate-300">We're awaiting payment confirmation. Your order will be confirmed shortly.</p>
+                {% endif %}
+                <p class="text-sm text-slate-500 mt-2">
+                    Order number: <span class="text-cyan-400 font-mono">{{ order.orderNumber }}</span>
+                </p>
+            </div>
+            {# Order status timeline #}
+            <div class="anim d-2 rounded-2xl bg-white/5 ring-1 ring-white/10 p-6 mb-6">
+                <h2 class="font-serif text-lg text-slate-100 mb-5">Order status</h2>
+                <div class="flex items-start gap-0">
+                    {% set steps = [
+                                            {key: 'placed',    label: 'Order placed',       done: true},
+                                            {key: 'paid',      label: 'Payment confirmed',  done: payment and payment.status.value == 'succeeded'},
+                                            {key: 'processing',label: 'Processing',         done: order.status.value in ['processing','shipped','delivered']},
+                                            {key: 'shipped',   label: 'Shipped',            done: order.status.value in ['shipped','delivered']},
+                                            {key: 'delivered', label: 'Delivered',          done: order.status.value == 'delivered'},
+                                        ] %}
+                    {% for step in steps %}
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center {{ step.done ? 'bg-cyan-400 ring-2 ring-cyan-400/30' : 'bg-white/[0.06] ring-1 ring-white/10' }}">
+                                {% if step.done %}
+                                    <svg class="w-3.5 h-3.5 text-slate-950"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                {% else %}
+                                    <span class="w-2 h-2 rounded-full bg-white/20"></span>
+                                {% endif %}
+                            </div>
+                            {% if not loop.last %}
+                                <div class="w-full h-0.5 mt-3.5 {{ step.done ? 'bg-cyan-400/50' : 'bg-white/[0.07]' }}"
+                                     style="transform:translateY(-50%)"></div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="flex mt-3">
+                    {% for step in steps %}
+                        <p class="flex-1 text-center text-[0.65rem] {{ step.done ? 'text-cyan-300' : 'text-slate-600' }} leading-tight">
+                            {{ step.label }}
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+            {# Order details grid #}
+            <div class="anim d-3 grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+                {# Items card #}
+                <div class="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5">
+                    <h2 class="text-sm font-semibold text-slate-200 mb-4">Items ordered</h2>
+                    <div class="space-y-3">
+                        {% for item in order.items %}
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="min-w-0">
+                                    <p class="text-sm text-slate-200 truncate">{{ item.productName }}</p>
+                                    <p class="text-xs text-slate-500">Qty {{ item.quantity }} × ₱{{ item.unitPrice|number_format(2) }}</p>
+                                </div>
+                                <p class="text-sm font-medium text-slate-100 shrink-0">₱{{ item.lineTotal|number_format(2) }}</p>
+                            </div>
+                        {% endfor %}
+                        <div class="border-t border-white/10 pt-3 flex justify-between text-sm font-semibold text-slate-100">
+                            <span>Total</span>
+                            <span class="font-serif text-lg">₱{{ order.total|number_format(2) }}</span>
+                        </div>
+                    </div>
+                </div>
+                {# Shipping + payment card #}
+                <div class="space-y-4">
+                    <div class="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5">
+                        <h2 class="text-sm font-semibold text-slate-200 mb-3">Delivery address</h2>
+                        {% set addr = order.shippingAddress %}
+                        <p class="text-sm text-slate-300">{{ addr.full_name ?? '' }}</p>
+                        <p class="text-sm text-slate-400">{{ addr.address_line ?? '' }}</p>
+                        <p class="text-sm text-slate-400">
+                            {{ addr.city ?? '' }}
+                            {% if addr.province ?? '' %}, {{ addr.province }}{% endif %}
+                        </p>
+                        <p class="text-sm text-slate-400">{{ addr.postal_code ?? '' }}</p>
+                        {% if addr.phone ?? '' %}<p class="text-sm text-slate-400 mt-1">{{ addr.phone }}</p>{% endif %}
+                    </div>
+                    <div class="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5">
+                        <h2 class="text-sm font-semibold text-slate-200 mb-3">Payment</h2>
+                        {% if payment %}
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-slate-300 capitalize">{{ payment.provider }}</span>
+                                <span class="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full {% if payment.status.value == 'succeeded' %}bg-cyan-400/10 text-cyan-300 {% elseif payment.status.value == 'failed' %}bg-red-400/10 text-red-300 {% else %}bg-amber-400/10 text-amber-300{% endif %}">
+                                    {{ payment.status.value|capitalize }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 font-mono truncate">{{ payment.providerTransactionId }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {# Actions #}
+            <div class="anim d-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="{{ path("app_products_browse") }}"
+                   class="flex items-center justify-center gap-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 px-6 py-3 text-sm font-semibold text-slate-950 transition-colors no-underline">
+                    Continue shopping
+                </a>
+                {% if app.user %}
+                    <a href="{{ path("app_dashboard") }}"
+                       class="flex items-center justify-center gap-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] ring-1 ring-white/[0.08] px-6 py-3 text-sm text-slate-300 hover:text-white transition-colors no-underline">
+                        View dashboard
+                    </a>
+                {% else %}
+                    <a href="{{ path("register_customer") }}"
+                       class="flex items-center justify-center gap-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] ring-1 ring-white/[0.08] px-6 py-3 text-sm text-slate-300 hover:text-white transition-colors no-underline">
+                        Create account to track orders
+                    </a>
+                {% endif %}
+            </div>
+        </main>
+        {% include 'partials/_footer.html.twig' %}
+    </div>
+{% endblock %}
