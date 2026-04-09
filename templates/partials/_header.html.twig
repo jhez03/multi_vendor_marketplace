@@ -21,7 +21,7 @@
             </nav>
             <div class="flex items-center gap-2">
                 {% if app.user %}
-                    <a href="{{ dashboard_url }}"
+                    <a href="{{ user.getDashboardUrl }}"
                        class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-slate-200">
                         Dashboard
                     </a>

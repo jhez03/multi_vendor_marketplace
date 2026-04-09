@@ -20,7 +20,7 @@ final class HomeController extends AbstractController
         }
         return $this->render('home/index.html.twig', [
             'controller_name' => 'HomeController',
-            'dashboard_url' => $redirect_url ?? null,
+            'user' => $this->getUser(),
         ]);
     }
 }

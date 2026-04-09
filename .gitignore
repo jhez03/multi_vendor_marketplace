@@ -16,6 +16,7 @@
 /.env.docker
 /.env.docker.local
 ###< docker compose env ###
+/public/uploads/
 
 ###> phpunit/phpunit ###
 /phpunit.xml
