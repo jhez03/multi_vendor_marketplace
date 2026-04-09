@@ -351,7 +351,7 @@
                                            class="relative block w-full aspect-square rounded-xl border-2 border-dashed border-white/[0.12] bg-[#0f0e0b] overflow-hidden cursor-pointer hover:border-[#d4860a]/40 transition-colors group">
                                         {# Preview image #}
                                         <img data-image-preview-target="preview"
-                                             src="{{ product.image is defined and product.image ? '/uploads/products/' ~ product.image : '' }}"
+                                             src="{{ product.image is defined and product.image ? '/uploads/products/'~ product.getShop.storeName ~ '/' ~ product.image : '' }}"
                                              alt="Product preview"
                                              class="{{ product.image is defined and product.image ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover">
                                         {# Empty state #}
