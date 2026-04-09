@@ -17,7 +17,7 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Shop::class)]
+    #[ORM\ManyToOne(targetEntity: Shop::class, inversedBy: "product")]
     #[ORM\JoinColumn(name: "shop_id", referencedColumnName: "id", nullable: false, unique: false)]
     private ?Shop $shop = null;
 

@@ -46,11 +46,19 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+        # Public: cart, checkout, payment callbacks, and Stripe webhook
+          - { path: ^/cart,              roles: PUBLIC_ACCESS }
+          - { path: ^/checkout,          roles: PUBLIC_ACCESS }
+          - { path: ^/payment,           roles: PUBLIC_ACCESS }
+          - { path: ^/webhooks/stripe,   roles: PUBLIC_ACCESS }
+          - { path: ^/order/thank-you,   roles: PUBLIC_ACCESS }
+          - { path: ^/products,          roles: PUBLIC_ACCESS }
           - { path: ^/login, roles: PUBLIC_ACCESS }
           - { path: ^/register, roles: PUBLIC_ACCESS }
           - { path: ^/dashboard, roles: ROLE_USER }
-            # ── Seller-only area ────────────────────────────────────────
           - { path: ^/seller,   roles: ROLE_SELLER }
+
+
     access_denied_url: /deny
 
 

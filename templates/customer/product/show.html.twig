@@ -82,121 +82,141 @@
                     {% endif %}
                 </div>
                 {# ── Right: product info ── #}
-                <div class="space-y-6">
-                    {# Shop badge #}
-                    {% if shop %}
-                        <div class="anim d-1 flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-lg bg-white/10 grid place-items-center shrink-0">
-                                <svg class="w-3.5 h-3.5 text-slate-300"
+                <form id="add-to-cart-form"
+                      action="{{ path('app_cart_add', {id: product.id}) }}"
+                      method="post">
+                    <input type="hidden"
+                           name="_token"
+                           value="{{ csrf_token('add_to_cart_' ~ product.id) }}">
+                    <div class="space-y-6">
+                        {# Flash messages #}
+                        {% for msg in app.flashes('success') %}
+                            <div class="anim mb-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 text-sm">
+                                <svg class="w-4 h-4 shrink-0"
                                      viewBox="0 0 24 24"
                                      fill="none"
                                      stroke="currentColor"
                                      stroke-width="1.8">
-                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                    <polyline points="20 6 9 17 4 12" />
                                 </svg>
-                            </div>
-                            <span class="text-sm text-slate-300">{{ shop.storeName }}</span>
-                            {% if shop.seller and shop.seller.isVerified %}
-                                <span class="inline-flex items-center gap-1 text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-300">
-                                    <svg class="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
-                                        <path d="M6 0a6 6 0 1 0 0 12A6 6 0 0 0 6 0zm2.77 4.44L5.55 7.95 3.5 5.9a.6.6 0 0 0-.85.85L5.1 9.2a.6.6 0 0 0 .9-.07l3.6-4.8a.6.6 0 0 0-.84-.84z" />
-                                    </svg>
-                                    Verified
-                                </span>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                    {# Name & price #}
-                    <div class="anim d-2">
-                        <h1 class="font-serif text-3xl sm:text-4xl tracking-tight text-slate-50 leading-tight">{{ product.name }}</h1>
-                        <div class="flex items-baseline gap-3 mt-3">
-                            <span class="font-serif text-3xl text-slate-50">₱{{ product.price|number_format(2) }}</span>
-                        </div>
-                    </div>
-                    {# Divider #}
-                    <div class="border-t border-white/10"></div>
-                    {# Description #}
-                    <div class="anim d-3">
-                        <h2 class="text-sm font-semibold text-slate-200 mb-2">Description</h2>
-                        <p class="text-sm text-slate-300 leading-relaxed">{{ product.description }}</p>
-                    </div>
-                    {# Quantity selector #}
-                    <div class="anim d-3">
-                        <h2 class="text-sm font-semibold text-slate-200 mb-3">Quantity</h2>
-                        <div class="flex items-center gap-0 rounded-xl bg-white/5 ring-1 ring-white/10 w-fit">
-                            <button type="button"
-                                    id="qty-dec"
-                                    onclick="const i=document.getElementById('qty-val'); const v=Math.max(1, parseInt(i.textContent)-1); i.textContent=v;"
-                                    class="qty-btn w-10 h-10 rounded-l-xl grid place-items-center text-slate-300 hover:text-white transition-colors cursor-pointer">
-                                <svg class="w-3.5 h-3.5"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="2">
-                                    <line x1="5" y1="12" x2="19" y2="12" />
-                                </svg>
-                            </button>
-                            <span id="qty-val"
-                                  class="w-10 text-center text-sm font-medium text-slate-100 select-none">1</span>
-                            <button type="button"
-                                    onclick="const i=document.getElementById('qty-val'); i.textContent=parseInt(i.textContent)+1;"
-                                    class="qty-btn w-10 h-10 rounded-r-xl grid place-items-center text-slate-300 hover:text-white transition-colors cursor-pointer">
-                                <svg class="w-3.5 h-3.5"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="2">
-                                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    {# CTA buttons #}
-                    <div class="anim d-4 flex flex-col sm:flex-row gap-3">
-                        <button type="button"
-                                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 px-5 py-3.5 text-sm font-semibold text-slate-950 transition-colors cursor-pointer">
-                            <svg class="w-4 h-4"
-                                 viewBox="0 0 24 24"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 stroke-width="2">
-                                <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                            </svg>
-                            Add to cart
-                        </button>
-                        <button type="button"
-                                class="sm:w-12 inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 px-3.5 py-3.5 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                                title="Add to wishlist">
-                            <svg class="w-5 h-5"
-                                 viewBox="0 0 24 24"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 stroke-width="1.8">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                            </svg>
-                        </button>
-                    </div>
-                    {# Trust signals #}
-                    <div class="anim d-4 grid grid-cols-3 gap-3">
-                        {% for signal in [
-                            {icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />', label: 'Secure checkout'},
-                            {icon: '<path d="M5 12h14M12 5l7 7-7 7" />', label: 'Fast delivery'},
-                            {icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />', label: 'Easy returns'},
-                            ] %}
-                            <div class="rounded-xl bg-white/[0.03] ring-1 ring-white/[0.07] p-3 text-center">
-                                <svg class="w-5 h-5 text-cyan-400/70 mx-auto mb-1.5"
-                                     viewBox="0 0 24 24"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     stroke-width="1.5">
-                                    {{ signal.icon|raw }}
-                                </svg>
-                                <p class="text-[0.65rem] text-slate-400">{{ signal.label }}</p>
+                                {{ msg }}
                             </div>
                         {% endfor %}
-                    </div>
+                        {# Shop badge #}
+                        {% if shop %}
+                            <div class="anim d-1 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-white/10 grid place-items-center shrink-0">
+                                    <svg class="w-3.5 h-3.5 text-slate-300"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="1.8">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                        <polyline points="9 22 9 12 15 12 15 22" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm text-slate-300">{{ shop.storeName }}</span>
+                                {% if shop.seller and shop.seller.isVerified %}
+                                    <span class="inline-flex items-center gap-1 text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-300">
+                                        <svg class="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M6 0a6 6 0 1 0 0 12A6 6 0 0 0 6 0zm2.77 4.44L5.55 7.95 3.5 5.9a.6.6 0 0 0-.85.85L5.1 9.2a.6.6 0 0 0 .9-.07l3.6-4.8a.6.6 0 0 0-.84-.84z" />
+                                        </svg>
+                                        Verified
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        {# Name & price #}
+                        <div class="anim d-2">
+                            <h1 class="font-serif text-3xl sm:text-4xl tracking-tight text-slate-50 leading-tight">{{ product.name }}</h1>
+                            <div class="flex items-baseline gap-3 mt-3">
+                                <span class="font-serif text-3xl text-slate-50">₱{{ product.price|number_format(2) }}</span>
+                            </div>
+                        </div>
+                        {# Divider #}
+                        <div class="border-t border-white/10"></div>
+                        {# Description #}
+                        <div class="anim d-3">
+                            <h2 class="text-sm font-semibold text-slate-200 mb-2">Description</h2>
+                            <p class="text-sm text-slate-300 leading-relaxed">{{ product.description }}</p>
+                        </div>
+                        {# Quantity selector #}
+                        <div class="anim d-3">
+                            <h2 class="text-sm font-semibold text-slate-200 mb-3">Quantity</h2>
+                            <div class="flex items-center gap-0 rounded-xl bg-white/5 ring-1 ring-white/10 w-fit">
+                                <button type="button"
+                                        id="qty-dec"
+                                        onclick="const i=document.getElementById('qty-val'); const v=Math.max(1, parseInt(i.textContent)-1); i.textContent=v;"
+                                        class="qty-btn w-10 h-10 rounded-l-xl grid place-items-center text-slate-300 hover:text-white transition-colors cursor-pointer">
+                                    <svg class="w-3.5 h-3.5"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                    </svg>
+                                </button>
+                                <span id="qty-val"
+                                      class="w-10 text-center text-sm font-medium text-slate-100 select-none">1</span>
+                                <button type="button"
+                                        onclick="const i=document.getElementById('qty-val'); i.textContent=parseInt(i.textContent)+1;"
+                                        class="qty-btn w-10 h-10 rounded-r-xl grid place-items-center text-slate-300 hover:text-white transition-colors cursor-pointer">
+                                    <svg class="w-3.5 h-3.5"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        {# CTA buttons #}
+                        <div class="anim d-4 flex flex-col sm:flex-row gap-3">
+                            <button type="submit"
+                                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 px-5 py-3.5 text-sm font-semibold text-slate-950 transition-colors cursor-pointer">
+                                <svg class="w-4 h-4"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2">
+                                    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                </svg>
+                                Add to cart
+                            </button>
+                            <button type="button"
+                                    class="sm:w-12 inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 px-3.5 py-3.5 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                    title="Add to wishlist">
+                                <svg class="w-5 h-5"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="1.8">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                </svg>
+                            </button>
+                        </div>
+                        {# Trust signals #}
+                        <div class="anim d-4 grid grid-cols-3 gap-3">
+                            {% for signal in [
+                                {icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />', label: 'Secure checkout'},
+                                {icon: '<path d="M5 12h14M12 5l7 7-7 7" />', label: 'Fast delivery'},
+                                {icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />', label: 'Easy returns'},
+                                ] %}
+                                <div class="rounded-xl bg-white/[0.03] ring-1 ring-white/[0.07] p-3 text-center">
+                                    <svg class="w-5 h-5 text-cyan-400/70 mx-auto mb-1.5"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="1.5">
+                                        {{ signal.icon|raw }}
+                                    </svg>
+                                    <p class="text-[0.65rem] text-slate-400">{{ signal.label }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </form>
                 </div>
             </div>
             {# ── About the store ── #}

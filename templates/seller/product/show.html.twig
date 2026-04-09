@@ -98,7 +98,7 @@
                                  id="main-img-wrap">
                                 {% if primaryImg %}
                                     <img id="main-img"
-                                         src="/uploads/products/{{ primaryImg.url }}"
+                                         src="/uploads/products/{{ product.getShop.storeName ~'/'~primaryImg.url }}"
                                          alt="{{ product.name }}"
                                          class="w-full h-full object-cover">
                                 {% else %}
@@ -139,10 +139,10 @@
                                 <div class="flex gap-2 p-4 border-t border-white/[0.07] overflow-x-auto">
                                     {% for img in images %}
                                         <button type="button"
-                                                onclick="document.getElementById('main-img').src='/uploads/products/{{ img.url }}'; document.querySelectorAll('.img-thumb').forEach(t=>t.classList.remove('thumb-active')); this.querySelector('img').parentElement.classList.add('thumb-active')"
+                                                onclick="document.getElementById('main-img').src='/uploads/products/{{ product.getShop.storeName ~'/'~ img.url }}'; document.querySelectorAll('.img-thumb').forEach(t=>t.classList.remove('thumb-active')); this.querySelector('img').parentElement.classList.add('thumb-active')"
                                                 class="shrink-0">
                                             <div class="img-thumb w-14 h-14 rounded-lg overflow-hidden border-2 border-white/[0.07] hover:border-[#d4860a] transition-colors cursor-pointer {{ loop.first ? 'thumb-active' : '' }}">
-                                                <img src="/uploads/products/{{ img.url }}"
+                                                <img src="/uploads/products/{{ product.getShop.storeName ~'/'~img.url }}"
                                                      alt=""
                                                      class="w-full h-full object-cover">
                                             </div>

@@ -15,7 +15,7 @@ class Shop
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: SellerProfile::class)]
+    #[ORM\OneToOne(targetEntity: SellerProfile::class, inversedBy: 'store')]
     #[ORM\JoinColumn(name: "seller_id", referencedColumnName: "id", nullable: false, unique: true)]
     private ?SellerProfile $seller = null;
 
