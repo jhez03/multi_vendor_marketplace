@@ -13,7 +13,7 @@ class BuyerProfile
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: User::class)]
+    #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'customerProfile')]
     #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id", nullable: false, unique: true)]
     private ?User $user = null;
 
