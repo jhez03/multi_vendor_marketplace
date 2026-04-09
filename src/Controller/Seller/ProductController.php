@@ -4,8 +4,8 @@ namespace App\Controller\Seller;
 
 use App\Entity\Product;
 use App\Entity\ProductImage;
+use App\Entity\Shop;
 use App\Form\ProductType;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -23,8 +23,11 @@ class ProductController extends AbstractController
     public function index(EntityManagerInterface $em): Response
     {
         /** @var \App\Entity\User $user */
-        $user     = $this->getUser();
-        $products = $em->getRepository(Product::class)->findAll();
+        $user    = $this->getUser();
+        $shop    = $user->getSellerProfile()?->getStore();
+        $products = $shop
+            ? $em->getRepository(Product::class)->findBy(['shop' => $shop], ['createdAt' => 'DESC'])
+            : [];
 
         return $this->render('seller/product/index.html.twig', [
             'user'     => $user,
@@ -45,19 +48,98 @@ class ProductController extends AbstractController
         $form    = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
+
+
         if ($form->isSubmitted() && $form->isValid()) {
-            // Handle image upload
+            $imageFile = $form->get('imageFile')->getData();
+            $image     = new ProductImage();
+
+            $product->setShop($user->getSellerProfile()->getStore());
+
+            if ($imageFile) {
+                $safeFilename = $slugger->slug(pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME));
+                $newFilename  = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                $image->setUrl($newFilename);
+                $image->setIsPrimary(true);
+                $storeName = $user->getSellerProfile()->getStore()->getStoreName();
+
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('products_images_directory') . '/' . $storeName,
+                        $newFilename
+                    );
+                } catch (FileException) {
+                    $image->setUrl('placeholder.png');
+                }
+            } else {
+                $image->setUrl('placeholder.png');
+                $image->setIsPrimary(true);
+            }
+
+            $product->addProductImage($image);
+            $em->persist($product);
+            $em->flush();
+
+            $this->addFlash('success', 'Product "' . $product->getName() . '" has been listed successfully.');
+
+            return $this->redirectToRoute('app_product_show', ['id' => $product->getId()]);
+        }
+
+        return $this->render('seller/product/new.html.twig', [
+            'user'    => $user,
+            'profile' => $user->getSellerProfile(),
+            'form'    => $form,
+            'product' => $product,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_product_show', requirements: ['id' => '\d+'])]
+    public function show(Product $product, EntityManagerInterface $em): Response
+    {
+        /** @var \App\Entity\User $user */
+        $user    = $this->getUser();
+        $profile = $user->getSellerProfile();
+
+        // Ensure the product belongs to this seller's shop
+        if ($product->getShop()?->getId() !== $profile?->getStore()?->getId()) {
+            throw $this->createAccessDeniedException('You do not own this product.');
+        }
+
+        return $this->render('seller/product/show.html.twig', [
+            'user'    => $user,
+            'profile' => $profile,
+            'product' => $product,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_product_edit', requirements: ['id' => '\d+'])]
+    public function edit(
+        Product $product,
+        Request $request,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger,
+    ): Response {
+        /** @var \App\Entity\User $user */
+        $user    = $this->getUser();
+        $profile = $user->getSellerProfile();
+
+        if ($product->getShop()?->getId() !== $profile?->getStore()?->getId()) {
+            throw $this->createAccessDeniedException('You do not own this product.');
+        }
+
+        $form = $this->createForm(ProductType::class, $product);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('imageFile')->getData();
 
             if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename     = $slugger->slug($originalFilename);
-                $newFilename      = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
-                $image = new ProductImage();
+                $safeFilename = $slugger->slug(pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME));
+                $newFilename  = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                $image        = new ProductImage();
                 $image->setUrl($newFilename);
-                //set shop id
-                $product->setShop($user->getSellerProfile()->getStore());
-
+                $image->setIsPrimary(true);
 
                 try {
                     $imageFile->move(
@@ -66,28 +148,22 @@ class ProductController extends AbstractController
                     );
                     $product->addProductImage($image);
                 } catch (FileException) {
-                    $image->setUrl('placeholder.png');
-                    $product->addProductImage(image);
+                    // keep existing images
                 }
-            } else {
-                $image->setUrl('placeholder.png');
-                $product->addProductImage($image);
             }
 
-            $em->persist($product);
             $em->flush();
+            $this->addFlash('success', 'Product updated successfully.');
 
-            $this->addFlash('success', 'Product "' . $product->getName() . '" has been listed successfully.');
-
-            return $this->redirectToRoute('app_product_index');
+            return $this->redirectToRoute('app_product_show', ['id' => $product->getId()]);
         }
-
 
         return $this->render('seller/product/new.html.twig', [
             'user'    => $user,
-            'profile' => $user->getSellerProfile(),
+            'profile' => $profile,
             'form'    => $form,
             'product' => $product,
+            'editing' => true,
         ]);
     }
 }

@@ -96,9 +96,11 @@ class RegistrationController extends AbstractController
             $cprofile ->setUser($user);
             $profile->setDisplayName($form->get('fullName')->getData());
             $cprofile->setFullName($form->get('fullName')->getData());
+            $storeName = $form->get('storeName')->getData();
+            $storeName = strtoupper(preg_replace('/[^a-zA-Z0-9_-]/', '', $storeName));
 
-            $shop->setSellerId($profile);
-            $shop->setStoreName($form->get('storeName')->getData());
+            $shop->setSeller($profile);
+            $shop->setStoreName($storeName);
             $shop->setStoreDescription($form->get('storeDescription')->getData());
             $user->setEmail($form->get('email')->getData());
 

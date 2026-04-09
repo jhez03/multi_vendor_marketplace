@@ -62,6 +62,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->customerProfile;
     }
+    //Dashboard_url
+    public function getDashboardUrl(): ?string
+    {
+        $roles = $this->getRoles();
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return '/admin/dashboard';
+        }
+        if (in_array('ROLE_SELLER', $roles, true)) {
+            return '/seller/dashboard';
+        }
+        if (in_array('ROLE_CUSTOMER', $roles, true)) {
+            return '/customer/dashboard';
+        }
+        return '/login';
+    }
 
     public function getId(): ?int
     {
