@@ -61,7 +61,7 @@ class ProductController extends AbstractController
                 $newFilename  = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 $image->setUrl($newFilename);
                 $image->setIsPrimary(true);
-                $storeName = $user->getSellerProfile()->getStore()->getStoreName();
+                $storeName = $slugger->slug($user->getSellerProfile()->getStore()->getStoreName());
 
 
                 try {
@@ -128,8 +128,19 @@ class ProductController extends AbstractController
             throw $this->createAccessDeniedException('You do not own this product.');
         }
 
+
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
+
+        //current image
+        $primaryImage = $product->getProductImages()->filter(function ($image) {
+            return $image->isPrimary();
+        })->first();
+        //add primaryImage to product object
+
+        $product->primaryImage = $primaryImage->getUrl();
+
+
 
         if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('imageFile')->getData();
@@ -140,10 +151,12 @@ class ProductController extends AbstractController
                 $image        = new ProductImage();
                 $image->setUrl($newFilename);
                 $image->setIsPrimary(true);
+                $storeName = $slugger->slug($user->getSellerProfile()->getStore()->getStoreName());
+
 
                 try {
                     $imageFile->move(
-                        $this->getParameter('products_images_directory'),
+                        $this->getParameter('products_images_directory') . '/' . $storeName,
                         $newFilename
                     );
                     $product->addProductImage($image);
@@ -165,5 +178,34 @@ class ProductController extends AbstractController
             'product' => $product,
             'editing' => true,
         ]);
+    }
+    #[Route('/{id}/del', name: 'app_product_del', requirements: ['id' => '\d+'])]
+    public function delete(
+        Product $product,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger,
+    ): Response {
+        /** @var \App\Entity\User $user */
+        $user    = $this->getUser();
+        $profile = $user->getSellerProfile();
+
+        if ($product->getShop()?->getId() !== $profile?->getStore()?->getId()) {
+            throw $this->createAccessDeniedException('You do not own this product.');
+        }
+
+        //remove image
+        $storeName = $slugger->slug($user->getSellerProfile()->getStore()->getStoreName());
+        $imagePath = $this->getParameter('products_images_directory');
+        foreach ($product->getProductImages() as $image) {
+            $imageFilePath = $imagePath . '/' . $storeName . '/' . $image->getUrl();
+            if (file_exists($imageFilePath)) {
+                unlink($imageFilePath);
+            }
+        }
+
+        $em->remove($product);
+        $em->flush();
+
+        return $this->redirectToRoute('app_product_index');
     }
 }
