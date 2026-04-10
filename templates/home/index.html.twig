@@ -124,24 +124,27 @@
             {# Featured products (placeholder cards) #}
             <section id="featured" class="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
                 <div class="flex items-end justify-between gap-6">
+                    {{ dump(featuredProducts) }}
                     <div>
                         <h2 class="text-2xl font-semibold tracking-tight">Featured today</h2>
                         <p class="mt-2 text-sm text-slate-300">Hand-picked items from verified stores.</p>
                     </div>
-                    <a href="#"
+                    <a href="{{ path("app_products_browse") }}"
                        class="text-sm font-semibold text-cyan-200 hover:text-cyan-100">Browse products</a>
                 </div>
                 <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {% for i in 1..6 %}
+                    {% for product in featuredProducts %}
                         <div class="rounded-2xl bg-white/5 ring-1 ring-white/10 overflow-hidden">
-                            <div class="h-40 bg-gradient-to-br from-white/10 to-white/0"></div>
+                            <img src="/uploads/products/{{ product.storeName ~ '/' ~ product.primaryImageUrl }}"
+                                 alt="{{ product.productName }}"
+                                 class="h-40 w-full object-cover object-center" />
                             <div class="p-5">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
-                                        <p class="text-sm font-semibold">Product {{ i }}</p>
-                                        <p class="mt-1 text-xs text-slate-400">by Store {{ i }}</p>
+                                        <p class="text-sm font-semibold">{{ product.productName }}</p>
+                                        <p class="mt-1 text-xs text-slate-400">by {{ product.storeName }}</p>
                                     </div>
-                                    <p class="text-sm font-semibold text-slate-100">$ {{ 19 + i }}.00</p>
+                                    <p class="text-sm font-semibold text-slate-100">$ {{ product.price }}</p>
                                 </div>
                                 <button class="mt-4 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-slate-200">
                                     Add to cart

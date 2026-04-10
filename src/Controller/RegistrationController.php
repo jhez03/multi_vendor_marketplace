@@ -16,6 +16,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 class RegistrationController extends AbstractController
 {
@@ -68,6 +69,7 @@ class RegistrationController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
+        SluggerInterface $slugger,
     ): Response {
         $user = new User();
         $form = $this->createForm(SellerRegistrationType::class, $user);
@@ -96,8 +98,7 @@ class RegistrationController extends AbstractController
             $cprofile ->setUser($user);
             $profile->setDisplayName($form->get('fullName')->getData());
             $cprofile->setFullName($form->get('fullName')->getData());
-            $storeName = $form->get('storeName')->getData();
-            $storeName = strtoupper(preg_replace('/[^a-zA-Z0-9_-]/', '', $storeName));
+            $storeName = $slugger->slug($form->get('storeName')->getData());
 
             $shop->setSeller($profile);
             $shop->setStoreName($storeName);
