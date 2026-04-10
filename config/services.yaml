@@ -9,6 +9,13 @@
 parameters:
     products_images_directory: '%kernel.project_dir%/public/uploads/products'
 
+    # ── Currency ──────────────────────────────────────────────────────────────
+    # Single source of truth for the ISO 4217 currency code used across the app.
+    # Sourced from the APP_CURRENCY environment variable (set in .env.docker).
+    # All services, forms, and Twig templates read this parameter — never the
+    # raw env var — so swapping currencies requires only one env change.
+    app.currency: '%env(string:APP_CURRENCY)%'
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -20,5 +27,12 @@ services:
     App\:
         resource: '../src/'
 
+    # Bind the currency parameter to every service that declares a
+    # $currency constructor argument, so no manual wiring is needed.
+    _instanceof:
+        App\Service\CurrencyService:
+            bind:
+                $currencyCode: '%app.currency%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+

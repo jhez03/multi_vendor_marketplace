@@ -128,8 +128,19 @@ class ProductController extends AbstractController
             throw $this->createAccessDeniedException('You do not own this product.');
         }
 
+
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
+
+        //current image
+        $primaryImage = $product->getProductImages()->filter(function ($image) {
+            return $image->isPrimary();
+        })->first();
+        //add primaryImage to product object
+
+        $product->primaryImage = $primaryImage->getUrl();
+
+
 
         if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('imageFile')->getData();

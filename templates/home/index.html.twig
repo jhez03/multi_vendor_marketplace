@@ -38,7 +38,7 @@
                                             class="rounded-xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-300">
                                         Search
                                     </button>
-                                    <a href=""
+                                    <a href="{{ path("register_seller") }}"
                                        class="rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15 ring-1 ring-white/10">
                                         Become a seller
                                     </a>
@@ -124,7 +124,6 @@
             {# Featured products (placeholder cards) #}
             <section id="featured" class="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
                 <div class="flex items-end justify-between gap-6">
-                    {{ dump(featuredProducts) }}
                     <div>
                         <h2 class="text-2xl font-semibold tracking-tight">Featured today</h2>
                         <p class="mt-2 text-sm text-slate-300">Hand-picked items from verified stores.</p>
@@ -135,20 +134,24 @@
                 <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {% for product in featuredProducts %}
                         <div class="rounded-2xl bg-white/5 ring-1 ring-white/10 overflow-hidden">
-                            <img src="/uploads/products/{{ product.storeName ~ '/' ~ product.primaryImageUrl }}"
-                                 alt="{{ product.productName }}"
-                                 class="h-40 w-full object-cover object-center" />
+                            <a href="{{ path('app_product_detail', {id:product.id}) }}">
+                                <img src="/uploads/products/{{ product.storeName ~ '/' ~ product.primaryImageUrl }}"
+                                     alt="{{ product.productName }}"
+                                     class="w-full h-40 object-cover object-center" />
+                            </a>
                             <div class="p-5">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
                                         <p class="text-sm font-semibold">{{ product.productName }}</p>
                                         <p class="mt-1 text-xs text-slate-400">by {{ product.storeName }}</p>
                                     </div>
-                                    <p class="text-sm font-semibold text-slate-100">$ {{ product.price }}</p>
+                                    <p class="text-sm font-semibold text-slate-100">{{ currency_symbol() ~ product.price }}</p>
                                 </div>
-                                <button class="mt-4 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-slate-200">
-                                    Add to cart
-                                </button>
+                                <a href="{{ path('app_product_detail', {id:product.id}) }}">
+                                    <button class="mt-4 w-full rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-slate-200">
+                                        Add to cart
+                                    </button>
+                                </a>
                             </div>
                         </div>
                     {% endfor %}

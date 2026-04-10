@@ -71,6 +71,11 @@ class RegistrationController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         SluggerInterface $slugger,
     ): Response {
+        //check if already a seller
+        if ($this->isGranted('ROLE_SELLER')) {
+            $this->addFlash('info', 'You are already registered as a seller.');
+            return $this->redirectToRoute('seller_dashboard');
+        }
         $user = new User();
         $form = $this->createForm(SellerRegistrationType::class, $user);
         $form->handleRequest($request);

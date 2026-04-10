@@ -3,20 +3,27 @@
 namespace App\Form;
 
 use App\Entity\ProductStatus;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ProductType extends AbstractType
 {
+    public function __construct(
+        /**
+         * Injected from the `app.currency` container parameter.
+         * The #[Autowire] attribute is the idiomatic Symfony 6.1+ way to
+         * bind a container parameter directly into a constructor argument.
+         */
+        #[Autowire(param: 'app.currency')]
+        private readonly string $currencyCode,
+    ) {}
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -51,7 +58,7 @@ class ProductType extends AbstractType
             ])
             ->add('price', MoneyType::class, [
                 'label'       => 'Base price',
-                'currency'    => 'PHP',
+                'currency'    => $this->currencyCode,
                 'divisor'     => 100, // store in centavos
                 'constraints' => [
                     new Assert\NotBlank(message: 'Please set a price'),
