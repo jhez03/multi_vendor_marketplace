@@ -68,6 +68,7 @@ class Shop
 
     public function getStoreName(): ?string
     {
+
         return $this->storeName;
     }
 

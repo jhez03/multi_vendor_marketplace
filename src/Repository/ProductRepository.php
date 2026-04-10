@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Product;
+use App\Entity\ProductStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,30 @@ class ProductRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Product::class);
+    }
+    /**
+    * @return Product[]
+    */
+    public function findFeaturedFromVerifiedSellers(int $limit = 6): array
+    {
+        $qb = $this->createQueryBuilder('p')
+           ->innerJoin('p.shop', 'shop')
+           ->innerJoin('shop.seller', 'seller')
+           ->leftJoin('p.productImages', 'pi')
+           ->addSelect('shop', 'seller', 'pi')
+           ->andWhere('p.status = :status')
+           ->andWhere('seller.isVerified = :verified')
+           ->setParameter('status', ProductStatus::ACTIVE)
+           ->setParameter('verified', true)
+           ->distinct()
+           // Prefer primary image first inside the collection (best-effort).
+           // This does NOT filter out non-primary images; it only affects ordering.
+           ->addOrderBy('pi.isPrimary', 'DESC')
+           ->addOrderBy('pi.sortOrder', 'ASC')
+           ->addOrderBy('p.createdAt', 'DESC')
+           ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 
     //    /**

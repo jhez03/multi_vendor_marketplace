@@ -192,9 +192,8 @@
                                 <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     {# Base price #}
                                     <div>
-                                        {{ form_label(form.price, null, {label_attr: {class: 'block text-[0.72rem] font-semibold tracking-[0.07em] uppercase text-[#6b6760] mb-1.5' }}) }}
                                         <div class="relative">
-                                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[0.82rem] text-[#6b6760] font-medium pointer-events-none">₱</span>
+                                            <!-- <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[0.82rem] text-[#6b6760] font-medium pointer-events-none">{{ currency_symbol() }}</span> -->
                                             {{ form_widget(form.price, {attr: {
                                                                                         class: 'w-full pl-7 pr-3.5 py-2.5 rounded-lg bg-[#0f0e0b] border border-white/[0.1] text-[#e8e4dc] text-[0.88rem] placeholder-[#3a3830] outline-none transition-all focus:border-[#1a9e87] focus:ring-2 focus:ring-[#1a9e87]/15 ' ~ (form.price.vars.errors|length ? 'border-red-500/60' : '')
                                             }}) }}
@@ -345,15 +344,18 @@
                                     </div>
                                     <h2 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Product image</h2>
                                 </div>
+                                {% if product.primaryImage is defined %}
+                                    {% set imageUrl = product.getShop.storeName ~ '/' ~ product.primaryImage %}
+                                {% endif %}
                                 <div class="p-5">
                                     {# Drop zone / preview #}
                                     <label for="{{ form.imageFile.vars.id }}"
                                            class="relative block w-full aspect-square rounded-xl border-2 border-dashed border-white/[0.12] bg-[#0f0e0b] overflow-hidden cursor-pointer hover:border-[#d4860a]/40 transition-colors group">
                                         {# Preview image #}
                                         <img data-image-preview-target="preview"
-                                             src="{{ product.image is defined and product.image ? '/uploads/products/'~ product.getShop.storeName ~ '/' ~ product.image : '' }}"
+                                             src="{{ imageUrl is defined ? '/uploads/products/' ~ imageUrl : '' }}"
                                              alt="Product preview"
-                                             class="{{ product.image is defined and product.image ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover">
+                                             class="{{ imageUrl is defined ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover">
                                         {# Empty state #}
                                         <div data-image-preview-target="empty"
                                              class="{{ product.image is defined and product.image ? 'hidden' : '' }} absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
