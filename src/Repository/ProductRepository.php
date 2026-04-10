@@ -40,6 +40,44 @@ class ProductRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+    /**
+    * Search active products by name, description, or store name.
+    *
+    * Security: All user input is passed as named DQL parameters — never
+    * interpolated into the query string — so SQL injection is impossible.
+    *
+    * @return Product[]
+    */
+    public function search(string $query, int $limit = 24): array
+    {
+        // Sanitize: trim whitespace, collapse multiple spaces
+        $clean = trim(preg_replace('/\s+/', ' ', $query));
+
+        // Reject empty / overly long inputs early (secondary guard; controller
+        // already validates, but defense-in-depth is worth it here).
+        if ($clean === '' || mb_strlen($clean) > 200) {
+            return [];
+        }
+
+        // Wrap for LIKE — escape literal % and _ so users can't craft wildcards
+        $like = '%' . addcslashes($clean, '%_') . '%';
+
+        return $this->createQueryBuilder('p')
+            ->innerJoin('p.shop', 's')
+            ->addSelect('s')
+            ->where('p.status = :status')
+            ->andWhere(
+                'LOWER(p.name)        LIKE LOWER(:like) OR
+                 LOWER(p.description) LIKE LOWER(:like) OR
+                 LOWER(s.storeName)   LIKE LOWER(:like)'
+            )
+            ->setParameter('status', ProductStatus::ACTIVE)
+            ->setParameter('like', $like)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 
     //    /**
     //     * @return Product[] Returns an array of Product objects
