@@ -227,7 +227,7 @@
                             <div class="flex items-start gap-3">
                                 <div class="w-10 h-10 rounded-lg overflow-hidden bg-white/[0.04] ring-1 ring-white/10 shrink-0">
                                     {% if item.image %}
-                                        <img src="/uploads/products/{{ item.image }}"
+                                        <img src="/uploads/products/{{ item.shop ~ '/' ~item.image }}"
                                              alt="{{ item.name }}"
                                              class="w-full h-full object-cover">
                                     {% else %}
