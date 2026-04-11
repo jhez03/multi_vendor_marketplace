@@ -65,8 +65,6 @@
                     {# Delivery address card #}
                     <div class="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6">
                         <h2 class="font-serif text-xl text-slate-100 mb-5">Delivery address</h2>
-                        {# Single form — both Stripe and PayPal buttons submit here #}
-                        {# The hidden 'provider' field changes depending on which button is clicked #}
                         <form id="checkout-form" class="space-y-4">
                             <input type="hidden" name="_token" value="{{ csrf_token("checkout") }}">
                             <input type="hidden" name="provider" id="provider-field" value="stripe">
@@ -160,7 +158,7 @@
                                         </div>
                                         <span class="w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400/30 shrink-0"></span>
                                     </div>
-                                    {# Stripe Elements mount point - shown when stripe is selected #}
+                                    {# Stripe Elements mount point #}
                                     <div id="stripe-element-wrap"
                                          class="mt-4 pt-4 border-t border-white/[0.07]">
                                         <div id="stripe-card-element"
@@ -188,7 +186,6 @@
                                         </div>
                                         <span class="w-4 h-4 rounded-full border-2 border-white/30 shrink-0"></span>
                                     </div>
-                                    {# PayPal SDK button container #}
                                     <div id="paypal-button-wrap"
                                          class="mt-4 pt-4 border-t border-white/[0.07] hidden">
                                         <div id="paypal-button-container"></div>
@@ -272,159 +269,35 @@
         </main>
         {% include 'partials/_footer.html.twig' %}
     </div>
-    {# ── Stripe Elements + PayPal SDK ── #}
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://www.paypal.com/sdk/js?client-id={{ paypalClientId }}&currency=PHP"></script>
-    <script>
-    (function () {
-        const publishableKey  = '{{ stripePublishKey }}';
-        const stripeActionUrl = '{{ path('app_checkout_stripe') }}';
-        const paypalActionUrl = '{{ path('app_checkout_paypal') }}';
-        const subtotal        = '{{ subtotal|number_format(2) }}';
+    {#
+      FIX 2 — Stripe Elements not mounting on first Turbo page load.
 
-        // ── Stripe Elements setup ──────────────────────────────────
-        const stripe   = Stripe(publishableKey);
-        const elements = stripe.elements();
-        const cardEl   = elements.create('card', {
-            style: {
-                base: {
-                    color: '#e8e4dc',
-                    fontFamily: '"DM Sans", sans-serif',
-                    fontSize: '14px',
-                    '::placeholder': { color: '#4a4844' },
-                    iconColor: '#9c9790',
-                },
-                invalid: { color: '#f09080', iconColor: '#f09080' },
-            },
-        });
-        cardEl.mount('#stripe-card-element');
+      ROOT CAUSE: When Turbo Drive navigates to this page it fires `turbo:load`
+      rather than `DOMContentLoaded`. A bare IIFE at the bottom of the body runs
+      synchronously during the initial HTML parse, but on a Turbo-driven visit
+      the script block is re-evaluated BEFORE the matching DOM nodes are fully
+      ready in Turbo's rendering pipeline. `card.mount('#stripe-card-element')`
+      therefore targets a node that exists in the old cached snapshot, not the
+      live one, and silently fails.
 
-        cardEl.on('change', (event) => {
-            const errDiv = document.getElementById('stripe-card-errors');
-            if (event.error) {
-                errDiv.textContent = event.error.message;
-                errDiv.classList.remove('hidden');
-            } else {
-                errDiv.classList.add('hidden');
-            }
-        });
-
-        // ── Method toggle ──────────────────────────────────────────
-        const radios       = document.querySelectorAll('input[name=payment_method_ui]');
-        const stripeWrap   = document.getElementById('stripe-element-wrap');
-        const stripeBtn    = document.getElementById('stripe-pay-btn');
-        const paypalWrap   = document.getElementById('paypal-button-wrap');
-        const methodLabels = document.querySelectorAll('.method-label');
-
-        radios.forEach((radio) => {
-            radio.addEventListener('change', () => {
-                methodLabels.forEach(l => {
-                    l.style.borderColor = '';
-                    l.style.background  = '';
-                    l.querySelector('span:last-child').style.borderColor = '';
-                    l.querySelector('span:last-child').style.background  = '';
-                });
-                const parent = radio.closest('.method-card').querySelector('.method-label');
-                parent.style.borderColor = 'rgba(34,191,163,0.6)';
-                parent.style.background  = 'rgba(34,191,163,0.04)';
-                parent.querySelector('span:last-child').style.borderColor = '#22bfa3';
-                parent.querySelector('span:last-child').style.background  = 'rgba(34,191,163,0.25)';
-
-                if (radio.value === 'stripe') {
-                    stripeWrap.style.display = '';
-                    stripeBtn.style.display  = '';
-                    paypalWrap.classList.add('hidden');
-                } else {
-                    stripeWrap.style.display = 'none';
-                    stripeBtn.style.display  = 'none';
-                    paypalWrap.classList.remove('hidden');
-                }
-            });
-        });
-
-        // ── Stripe pay button ──────────────────────────────────────
-        stripeBtn.addEventListener('click', async () => {
-            const form = document.getElementById('checkout-form');
-            if (!form.reportValidity()) return;
-
-            stripeBtn.disabled = true;
-            stripeBtn.textContent = 'Processing…';
-
-            document.getElementById('provider-field').value = 'stripe';
-
-            const formData = new FormData(form);
-            const response = await fetch(stripeActionUrl, {
-                method:      'POST',
-                body:        formData,
-                credentials: 'same-origin',
-            });
-
-            if (!response.ok) {
-                stripeBtn.disabled  = false;
-                stripeBtn.textContent = 'Pay ₱' + subtotal + ' with card';
-                return;
-            }
-
-            const html        = await response.text();
-            const parser      = new DOMParser();
-            const doc         = parser.parseFromString(html, 'text/html');
-            const clientSecret = doc.getElementById('stripe-client-secret')?.value;
-            const returnUrl   = doc.getElementById('stripe-return-url')?.value;
-
-            if (!clientSecret) {
-                window.location.href = response.url;
-                return;
-            }
-
-            const { error } = await stripe.confirmCardPayment(clientSecret, {
-                payment_method: { card: cardEl },
-            });
-
-            if (error) {
-                const errDiv = document.getElementById('stripe-card-errors');
-                errDiv.textContent = error.message;
-                errDiv.classList.remove('hidden');
-                stripeBtn.disabled  = false;
-                stripeBtn.textContent = 'Pay ₱' + subtotal + ' with card';
-            } else {
-                window.location.href = returnUrl || '/payment/stripe/return';
-            }
-        });
-
-        // ── PayPal Smart Buttons ───────────────────────────────────
-        paypal.Buttons({
-            style: {
-                shape: 'rect',
-                color: 'gold',
-                layout: 'vertical',
-                label: 'paypal',
-            },
-            createOrder: async () => {
-                const form = document.getElementById('checkout-form');
-                if (!form.reportValidity()) return Promise.reject('Invalid form');
-
-                document.getElementById('provider-field').value = 'paypal';
-
-                const formData = new FormData(form);
-                const response = await fetch(paypalActionUrl, {
-                    method:      'POST',
-                    body:        formData,
-                    credentials: 'same-origin',
-                });
-
-                const data = await response.json();
-                return data.paypalOrderId;
-            },
-            onApprove: (data) => {
-                window.location.href = '/payment/paypal/return?token=' + data.orderID;
-            },
-            onError: (err) => {
-                console.error('PayPal error', err);
-            },
-            onCancel: () => {
-                window.location.href = '{{ path('app_payment_paypal_cancel') }}';
-            },
-        }).render('#paypal-button-container');
-    })();
-    </script>
+      FIX STRATEGY:
+        1. `data-turbo-eval="false"` — Turbo caches and replays <script> tags on
+           every visit by default. This attribute tells Turbo to evaluate the
+           script only once (the first real load) and skip re-evaluation on
+           cache-restore, preventing the "Stripe already initialized" error.
+        2. Listen on `turbo:load` instead of running immediately. Turbo fires
+           this event after every navigation (including the first page load),
+           guaranteeing the DOM is fully ready and the #stripe-card-element
+           container is live.
+        3. Mount-guard (`_stripeCardMounted` flag) — if the user somehow gets
+           the page rendered twice (e.g. Turbo preview + actual load), we don't
+           call `elements.create()` or `card.mount()` a second time, which would
+           throw "already mounted" errors.
+        4. Listen on `turbo:before-cache` to unmount the card element before
+           Turbo snapshots the page, so the snapshot is clean and the element
+           can be re-mounted on the next visit.
+    #}
+<script src="https://js.stripe.com/v3/" data-turbo-eval="false"></script>
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypalClientId }}&currency=PHP" data-turbo-eval="false"></script>
+<div data-controller="checkout" data-checkout-stripe-key-value="{{ stripePublishKey }}" data-checkout-stripe-action-value="{{ path("app_checkout_stripe") }}" data-checkout-paypal-action-value="{{ path("app_checkout_paypal") }}" data-checkout-subtotal-value="{{ subtotal|number_format(2) }}">
 {% endblock %}

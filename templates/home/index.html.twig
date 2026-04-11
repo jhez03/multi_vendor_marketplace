@@ -94,12 +94,6 @@
                 </div>
             </section>
             {# ── Category chips ────────────────────────────────────────────── #}
-            {#
-              We only render this section when there are real categories in the DB
-              (categories with at least one active product are returned by
-              findActiveWithProducts()).  This avoids an empty section on a
-              fresh install before any products have been added.
-            #}
             {% if categories is not empty %}
                 <section id="categories" class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
                     <div class="flex items-end justify-between gap-6 mb-6">
@@ -110,16 +104,13 @@
                         <a href="{{ path("app_products_browse") }}"
                            class="text-sm font-semibold text-cyan-200 hover:text-cyan-100 no-underline">View all →</a>
                     </div>
-                    {# Grid of category cards — 2 columns on mobile, up to 4 on desktop #}
                     <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
                         {% for cat in categories %}
                             <a href="{{ path('app_products_browse', {category: cat.slug}) }}"
                                class="group relative overflow-hidden rounded-2xl bg-white/5 p-5 ring-1 ring-white/10 hover:bg-white/10 hover:ring-white/20 transition-all no-underline">
-                                {# Subtle gradient accent on hover #}
                                 <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-fuchsia-600/0 group-hover:from-cyan-500/5 group-hover:to-fuchsia-600/5 transition-all duration-300 pointer-events-none rounded-2xl">
                                 </div>
                                 <div class="relative">
-                                    {# Icon — rendered as emoji text, 2rem; falls back gracefully if none #}
                                     {% if cat.icon %}
                                         <span class="block text-3xl mb-3 leading-none">{{ cat.icon }}</span>
                                     {% else %}
@@ -153,10 +144,6 @@
                     </div>
                 </section>
             {% else %}
-                {# Fallback static chips shown on a brand-new install before any
-                   products exist — links still go to the browse page but just
-                   show all products, not filtered.  Once products are listed
-                   the dynamic section above will replace this. #}
                 <section id="categories" class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
                     <div class="flex items-end justify-between gap-6 mb-6">
                         <div>
@@ -195,14 +182,23 @@
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {% for product in featuredProducts %}
                             <div class="rounded-2xl bg-white/5 ring-1 ring-white/10 overflow-hidden hover:ring-white/20 transition-all group">
+                                {#
+                                  FIX 1 — Consistent image sizes without quality loss.
+                                  Industry standard: use `aspect-[4/3]` on the wrapper so every card
+                                  reserves the exact same proportional space (width × 75%). The <img>
+                                  uses `object-cover object-center` to fill that box, cropping edges
+                                  symmetrically rather than distorting. No hard-coded `h-44` needed —
+                                  the aspect-ratio CSS property does the math at any breakpoint.
+                                  `overflow-hidden` on the link clips the scale-up hover animation.
+                                #}
                                 <a href="{{ path('app_product_detail', {id: product.id}) }}"
-                                   class="block overflow-hidden">
+                                   class="block relative overflow-hidden aspect-[4/3] w-full">
                                     {% if product.primaryImageUrl %}
                                         <img src="/uploads/products/{{ product.storeName ~ '/' ~ product.primaryImageUrl }}"
                                              alt="{{ product.productName }}"
-                                             class="w-full h-44 object-cover object-center group-hover:scale-105 transition-transform duration-300">
+                                             class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300">
                                     {% else %}
-                                        <div class="w-full h-44 bg-white/[0.03] grid place-items-center">
+                                        <div class="absolute inset-0 bg-white/[0.03] grid place-items-center">
                                             <svg class="w-10 h-10 text-slate-600"
                                                  viewBox="0 0 24 24"
                                                  fill="none"
@@ -214,7 +210,6 @@
                                     {% endif %}
                                 </a>
                                 <div class="p-5">
-                                    {# Category badge — shown when the product has a category #}
                                     {% if product.categoryName is defined and product.categoryName %}
                                         <span class="inline-block mb-2 text-[0.65rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-300">
                                             {{ product.categoryName }}
