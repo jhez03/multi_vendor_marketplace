@@ -17,6 +17,8 @@
 /.env.docker.local
 ###< docker compose env ###
 /public/uploads/
+/.php-cs-fixer.cache
+/.twig-cs-fixer.cache
 
 ###> phpunit/phpunit ###
 /phpunit.xml
