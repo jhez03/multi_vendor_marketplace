@@ -8,18 +8,58 @@
 <header class="relative z-10">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
+            {# ── Brand ── #}
             <a href="{{ path("home") }}" class="flex items-center gap-2">
                 <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
                     <span class="text-sm font-bold tracking-tight">MV</span>
                 </span>
                 <span class="text-sm font-semibold tracking-wide">MultiVendor</span>
             </a>
+            {# ── Nav links ── #}
             <nav class="hidden items-center gap-6 md:flex">
                 <a href="#featured" class="text-sm text-slate-300 hover:text-white">Featured</a>
                 <a href="#categories" class="text-sm text-slate-300 hover:text-white">Categories</a>
                 <a href="#how" class="text-sm text-slate-300 hover:text-white">How it works</a>
             </nav>
+            {# ── Right side: cart + auth ── #}
             <div class="flex items-center gap-2">
+                {#
+                    Cart icon with badge.
+                    `cart_count` comes from CartExtension::getGlobals() — a Twig global
+                    registered automatically via autoconfigure. It reads the session-based
+                    CartService so every template gets the live count with zero controller
+                    coupling.
+
+                    Accessibility: we use aria-label on the link and visually-hidden
+                    text inside the badge so screen readers announce "Cart, 3 items".
+                #}
+                <a href="{{ path("app_cart_index") }}"
+                   class="relative inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.06] ring-1 ring-white/10 text-slate-300 hover:text-white hover:bg-white/[0.12] transition-colors"
+                   aria-label="Cart{% if cart_count > 0 %}, {{ cart_count }} item{{ cart_count != 1 ? 's' : '' }}{% endif %}">
+                    {# Shopping bag SVG — consistent with the rest of the app #}
+                    <svg class="w-4 h-4"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         aria-hidden="true">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                    {#
+                        Badge: only render the DOM node when there are items.
+                        - `min-w-[1.1rem]` ensures it stays circular for single digits
+                          and widens gracefully for 10+ (e.g. "12").
+                        - `tabindex="-1"` keeps it out of focus order (the <a> handles it).
+                        - We cap the displayed number at 99 to avoid layout overflow.
+                    #}
+                    {% if cart_count > 0 %}
+                        <span class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] flex items-center justify-center rounded-full bg-cyan-400 text-[0.6rem] font-bold text-slate-950 px-0.5 leading-none tabindex='-1'"
+                              aria-hidden="true">{{ cart_count > 99 ? '99+' : cart_count }}</span>
+                    {% endif %}
+                </a>
+                {# ── Auth actions ── #}
                 {% if app.user %}
                     <a href="{{ app.user.getDashboardUrl }}"
                        class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-slate-200">
