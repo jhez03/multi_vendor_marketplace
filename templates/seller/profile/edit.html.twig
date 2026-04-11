@@ -1,0 +1,338 @@
+{% extends 'base.html.twig' %}
+{% from 'seller/dashboard/partials/_sidebar.html.twig' import sidebar %}
+{% block title %}Seller Profile — Marketplace{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap"
+          rel="stylesheet">
+    <style>
+        .font-serif { font-family: 'Instrument Serif', serif; }
+        body { font-family: 'DM Sans', sans-serif; }
+        @keyframes fade-up { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+        .anim  { animation: fade-up .3s ease both; }
+        .d-1{animation-delay:.04s;} .d-2{animation-delay:.08s;} .d-3{animation-delay:.12s;}
+
+        .logo-ring { transition: box-shadow .2s ease; }
+        .logo-ring:hover { box-shadow: 0 0 0 3px #b5601e; }
+
+        .profile-input:focus {
+            border-color: rgba(181,96,30,.5);
+            box-shadow: 0 0 0 3px rgba(181,96,30,.12);
+            outline: none;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="flex min-h-screen bg-[#0a0908] text-[#e8e4dc]"
+         data-controller="sidebar">
+        <div data-sidebar-target="overlay"
+             data-action="click->sidebar#close"
+             class="hidden fixed inset-0 z-20 bg-black/60 lg:hidden"></div>
+        {{ sidebar(user, profile, 'seller_profile_edit', 'seller') }}
+        <div class="flex flex-col flex-1 min-w-0 overflow-x-hidden">
+            {# ── Top bar ── #}
+            <header class="sticky top-0 z-10 flex items-center justify-between px-5 lg:px-8 py-3.5 bg-[#0f0e0b] border-b border-white/[0.07]">
+                <div class="flex items-center gap-3">
+                    <button data-action="click->sidebar#open"
+                            class="lg:hidden grid place-items-center w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.07] text-[#9c9790] hover:text-[#e8e4dc] transition-colors cursor-pointer">
+                        <svg class="w-4 h-4"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8">
+                            <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="font-serif text-xl leading-none text-[#e8e4dc]">Seller Profile</h1>
+                        <p class="text-[0.72rem] text-[#6b6760] mt-0.5">Manage your store information</p>
+                    </div>
+                </div>
+                {# Verification badge in header #}
+                {% if profile.verified %}
+                    <span class="hidden sm:inline-flex items-center gap-1.5 text-[0.72rem] font-medium text-[#22bfa3] bg-[#22bfa3]/10 px-3 py-1.5 rounded-full border border-[#22bfa3]/20">
+                        <svg class="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
+                            <path d="M6 0a6 6 0 1 0 0 12A6 6 0 0 0 6 0zm2.77 4.44L5.55 7.95 3.5 5.9a.6.6 0 0 0-.85.85L5.1 9.2a.6.6 0 0 0 .9-.07l3.6-4.8a.6.6 0 0 0-.84-.84z" />
+                        </svg>
+                        Verified seller
+                    </span>
+                {% else %}
+                    <span class="hidden sm:inline-flex items-center gap-1.5 text-[0.72rem] font-medium text-[#f0a832] bg-[#f0a832]/10 px-3 py-1.5 rounded-full border border-[#f0a832]/20">
+                        <svg class="w-3 h-3"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        Pending review
+                    </span>
+                {% endif %}
+            </header>
+            {# ── Flash messages ── #}
+            <div class="px-5 lg:px-8">
+                {% for msg in app.flashes('success') %}
+                    <div class="mt-5 flex items-center gap-2 px-4 py-3 rounded-xl bg-[#1a9e87]/10 border border-[#1a9e87]/20 text-[#22bfa3] text-[0.82rem]">
+                        <svg class="w-4 h-4 shrink-0"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        {{ msg }}
+                    </div>
+                {% endfor %}
+                {% for msg in app.flashes('error') %}
+                    <div class="mt-5 flex items-center gap-2 px-4 py-3 rounded-xl bg-[#e05c4b]/10 border border-[#e05c4b]/20 text-[#f09080] text-[0.82rem]">
+                        <svg class="w-4 h-4 shrink-0"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8">
+                            <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        {{ msg }}
+                    </div>
+                {% endfor %}
+            </div>
+            {# ── Main content ── #}
+            <main class="p-5 lg:p-8">
+                {{ form_start(form, {
+                                    attr: {
+                                    enctype: 'multipart/form-data',
+                                    novalidate: 'novalidate',
+                                    class: 'space-y-6'
+                                    }
+                                    }) }}
+                    <div class="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-6 items-start">
+                        {# ── Left: Store logo card ── #}
+                        <div class="anim d-1 rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                            <div class="px-5 py-3.5 border-b border-white/[0.07]">
+                                <h2 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Store logo</h2>
+                            </div>
+                            <div class="p-6 flex flex-col items-center text-center"
+                                 data-controller="image-preview">
+                                {# Logo display — square with rounded corners for brand logos #}
+                                <div class="relative mb-5">
+                                    {% if shop and shop.logoUrl %}
+                                        <img id="logo-preview"
+                                             data-image-preview-target="preview"
+                                             src="/uploads/logos/{{ shop.logoUrl }}"
+                                             alt="Store logo"
+                                             class="logo-ring w-28 h-28 rounded-2xl object-cover border-2 border-white/10 cursor-pointer">
+                                    {% else %}
+                                        <div id="logo-placeholder"
+                                             data-image-preview-target="empty"
+                                             class="logo-ring w-28 h-28 rounded-2xl border-2 border-white/10 grid place-items-center cursor-pointer"
+                                             style="background: linear-gradient(135deg, #b5601e, #d4860a)">
+                                            <svg class="w-10 h-10 text-white/70"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="1.5">
+                                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                                <polyline points="9 22 9 12 15 12 15 22" />
+                                            </svg>
+                                        </div>
+                                        <img id="logo-preview"
+                                             data-image-preview-target="preview"
+                                             src=""
+                                             alt="Store logo"
+                                             class="hidden logo-ring w-28 h-28 rounded-2xl object-cover border-2 border-white/10">
+                                    {% endif %}
+                                    {# Camera badge #}
+                                    <label for="{{ form.logoFile.vars.id }}"
+                                           class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#b5601e] hover:bg-[#d4860a] grid place-items-center cursor-pointer transition-colors shadow-lg border-2 border-[#0a0908]"
+                                           title="Change logo">
+                                        <svg class="w-3.5 h-3.5 text-white"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                            <circle cx="12" cy="13" r="4" />
+                                        </svg>
+                                    </label>
+                                </div>
+                                {{ form_widget(form.logoFile, {
+                                                                attr: {
+                                                                'data-image-preview-target': 'input',
+                                                                'data-action': 'change->image-preview#show',
+                                                                accept: 'image/jpeg,image/png,image/webp',
+                                                                class: 'sr-only'
+                                                                }
+                                                                }) }}
+                                {% if form.logoFile.vars.errors|length %}
+                                    <p class="mt-2 text-[0.72rem] text-red-400">{{ form.logoFile.vars.errors|first.message }}</p>
+                                {% endif %}
+                                <p class="text-[0.72rem] text-[#6b6760] mt-3 leading-relaxed">
+                                    JPG, PNG, or WebP
+                                    <br>
+                                    Max 2 MB · Recommended 400×400px
+                                </p>
+                                {# Store quick stats #}
+                                <div class="w-full mt-6 pt-5 border-t border-white/[0.07] space-y-3 text-left">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-[0.72rem] text-[#6b6760]">Status</p>
+                                        {% if profile.verified %}
+                                            <span class="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-[#1a9e87]/15 text-[#22bfa3]">Verified</span>
+                                        {% else %}
+                                            <span class="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-[#f0a832]/12 text-[#f0a832]">Pending</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-[0.72rem] text-[#6b6760]">Member since</p>
+                                        <p class="text-[0.72rem] text-[#9c9790]">{{ profile.createdAt ? profile.createdAt|date("M Y") : '—' }}</p>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-[0.72rem] text-[#6b6760]">Email</p>
+                                        <p class="text-[0.72rem] text-[#9c9790] truncate max-w-[120px]">{{ user.email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {# ── Right: Form fields ── #}
+                        <div class="space-y-5">
+                            {# Personal display name #}
+                            <div class="anim d-2 rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                                <div class="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.07]">
+                                    <div class="w-6 h-6 rounded-md bg-[#b5601e]/10 grid place-items-center shrink-0">
+                                        <svg class="w-3 h-3 text-[#b5601e]"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                            <circle cx="12" cy="7" r="4" />
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Your identity</h2>
+                                </div>
+                                <div class="p-5">
+                                    {{ form_label(form.displayName, null, {
+                                                                        label_attr: { class: 'block text-[0.72rem] font-semibold tracking-[0.07em] uppercase text-[#6b6760] mb-1.5' }
+                                                                        }) }}
+                                    {{ form_widget(form.displayName, {
+                                                                        attr: {
+                                                                        class: 'profile-input w-full px-3.5 py-2.5 rounded-lg bg-[#0f0e0b] border border-white/[0.1] text-[#e8e4dc] text-[0.88rem] placeholder-[#3a3830] transition-all ' ~ (form.displayName.vars.errors|length ? 'border-red-500/60' : '')
+                                    }
+                                    }) }}
+                                    {% if form.displayName.vars.errors|length %}
+                                        <p class="mt-1.5 text-[0.72rem] text-red-400 flex items-center gap-1">
+                                            <svg class="w-3 h-3 shrink-0" viewBox="0 0 12 12" fill="currentColor">
+                                                <path d="M6 0a6 6 0 1 0 0 12A6 6 0 0 0 6 0zm.75 9H5.25V7.5h1.5V9zm0-3H5.25V3h1.5v3z" />
+                                            </svg>
+                                            {{ form.displayName.vars.errors|first.message }}
+                                        </p>
+                                    {% endif %}
+                                    <p class="mt-1 text-[0.68rem] text-[#4a4844]">This name appears on orders and customer communications.</p>
+                                </div>
+                            </div>
+                            {# Store details #}
+                            <div class="anim d-2 rounded-xl bg-[#141210] border border-white/[0.07] overflow-hidden">
+                                <div class="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.07]">
+                                    <div class="w-6 h-6 rounded-md bg-[#b5601e]/10 grid place-items-center shrink-0">
+                                        <svg class="w-3 h-3 text-[#b5601e]"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2">
+                                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                            <polyline points="9 22 9 12 15 12 15 22" />
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-[0.82rem] font-semibold text-[#e8e4dc]">Store details</h2>
+                                </div>
+                                <div class="p-5 space-y-5">
+                                    {# Store name #}
+                                    <div>
+                                        {{ form_label(form.storeName, null, {
+                                                                                label_attr: { class: 'block text-[0.72rem] font-semibold tracking-[0.07em] uppercase text-[#6b6760] mb-1.5' }
+                                                                                }) }}
+                                        {{ form_widget(form.storeName, {
+                                                                                attr: {
+                                                                                class: 'profile-input w-full px-3.5 py-2.5 rounded-lg bg-[#0f0e0b] border border-white/[0.1] text-[#e8e4dc] text-[0.88rem] placeholder-[#3a3830] transition-all ' ~ (form.storeName.vars.errors|length ? 'border-red-500/60' : '')
+                                        }
+                                        }) }}
+                                        {% if form.storeName.vars.errors|length %}
+                                            <p class="mt-1.5 text-[0.72rem] text-red-400 flex items-center gap-1">
+                                                <svg class="w-3 h-3 shrink-0" viewBox="0 0 12 12" fill="currentColor">
+                                                    <path d="M6 0a6 6 0 1 0 0 12A6 6 0 0 0 6 0zm.75 9H5.25V7.5h1.5V9zm0-3H5.25V3h1.5v3z" />
+                                                </svg>
+                                                {{ form.storeName.vars.errors|first.message }}
+                                            </p>
+                                        {% endif %}
+                                        <p class="mt-1 text-[0.68rem] text-[#4a4844]">Shown publicly on your store page and product listings.</p>
+                                    </div>
+                                    {# Store description #}
+                                    <div data-controller="char-counter" data-char-counter-max-value="2000">
+                                        <div class="flex items-baseline justify-between mb-1.5">
+                                            {{ form_label(form.storeDescription, null, {
+                                                                                        label_attr: { class: 'block text-[0.72rem] font-semibold tracking-[0.07em] uppercase text-[#6b6760]' }
+                                                                                        }) }}
+                                            <span class="text-[0.68rem] text-[#4a4844]">
+                                                <span data-char-counter-target="count"></span> / 2000
+                                            </span>
+                                        </div>
+                                        {{ form_widget(form.storeDescription, {
+                                                                                attr: {
+                                                                                'data-char-counter-target': 'input',
+                                                                                'data-action': 'input->char-counter#update',
+                                                                                maxlength: 2000,
+                                                                                class: 'profile-input w-full px-3.5 py-2.5 rounded-lg bg-[#0f0e0b] border border-white/[0.1] text-[#e8e4dc] text-[0.88rem] placeholder-[#3a3830] transition-all resize-y min-h-[100px] '  ~ (form.storeDescription.vars.errors|length ? 'border-red-500/60' : '')
+                                        }
+                                        }) }}
+                                        {% if form.storeDescription.vars.errors|length %}
+                                            <p class="mt-1.5 text-[0.72rem] text-red-400">{{ form.storeDescription.vars.errors|first.message }}</p>
+                                        {% endif %}
+                                        <p class="mt-1 text-[0.68rem] text-[#4a4844]">Help buyers understand what makes your store unique.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {# Verification info banner #}
+                            {% if not profile.verified %}
+                                <div class="anim d-3 rounded-xl bg-[#d4860a]/[0.06] border border-[#d4860a]/20 p-4">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-4 h-4 text-[#f0a832] shrink-0 mt-0.5"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="1.8">
+                                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                                        </svg>
+                                        <div>
+                                            <p class="text-[0.78rem] font-medium text-[#f0a832]">Verification pending</p>
+                                            <p class="text-[0.72rem] text-[#6b6760] mt-0.5 leading-relaxed">
+                                                Our team will review your store within 1–2 business days. You can update your profile while verification is in progress.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {# Submit bar #}
+                            <div class="anim d-3 flex items-center justify-between gap-4 pt-2">
+                                <a href="{{ path("seller_dashboard") }}"
+                                   class="px-5 py-2.5 rounded-lg text-[0.82rem] text-[#9c9790] hover:text-[#e8e4dc] transition-colors border border-white/[0.07] hover:border-white/[0.15] no-underline">
+                                    Cancel
+                                </a>
+                                <button type="submit"
+                                        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-[0.84rem] font-semibold text-white bg-[#b5601e] hover:bg-[#d4860a] transition-colors cursor-pointer">
+                                    <svg class="w-3.5 h-3.5"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    Save changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {{ form_end(form) }}
+            </main>
+        </div>
+    </div>
+{% endblock %}
