@@ -9,6 +9,12 @@
 parameters:
     products_images_directory: '%kernel.project_dir%/public/uploads/products'
 
+    # Profile upload directories — kept separate for isolation and clarity
+    # Avatars: customer profile photos
+    avatars_directory: '%kernel.project_dir%/public/uploads/avatars'
+    # Logos: seller store logos
+    logos_directory: '%kernel.project_dir%/public/uploads/logos'
+
     # ── Currency ──────────────────────────────────────────────────────────────
     # Single source of truth for the ISO 4217 currency code used across the app.
     # Sourced from the APP_CURRENCY environment variable (set in .env.docker).
@@ -33,6 +39,13 @@ services:
         App\Service\CurrencyService:
             bind:
                 $currencyCode: '%app.currency%'
+    # Explicit binding for ProfileUploadService constructor arguments.
+    # Using named argument binding so other services with $directory args
+    # are not accidentally affected.
+    App\Service\ProfileUploadService:
+        arguments:
+            $avatarsDirectory: '%avatars_directory%'
+            $logosDirectory:   '%logos_directory%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
