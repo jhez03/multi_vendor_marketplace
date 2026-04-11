@@ -2,7 +2,9 @@
 
 namespace App\Form;
 
+use App\Entity\ProductCategory;
 use App\Entity\ProductStatus;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -18,17 +20,16 @@ class ProductType extends AbstractType
     public function __construct(
         /**
          * Injected from the `app.currency` container parameter.
-         * The #[Autowire] attribute is the idiomatic Symfony 6.1+ way to
-         * bind a container parameter directly into a constructor argument.
          */
         #[Autowire(param: 'app.currency')]
         private readonly string $currencyCode,
     ) {}
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Product Name',
+                'label'       => 'Product name',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Product name is required.'),
                     new Assert\Length(
@@ -59,7 +60,7 @@ class ProductType extends AbstractType
             ->add('price', MoneyType::class, [
                 'label'       => 'Base price',
                 'currency'    => $this->currencyCode,
-                'divisor'     => 100, // store in centavos
+                'divisor'     => 100,
                 'constraints' => [
                     new Assert\NotBlank(message: 'Please set a price'),
                     new Assert\Positive(message: 'Price must be greater than zero'),
@@ -67,26 +68,35 @@ class ProductType extends AbstractType
                 'attr' => ['placeholder' => '0.00'],
             ])
             ->add('status', EnumType::class, [
-                'class'  => ProductStatus::class,
-                'label'   => 'Listing status',
-                'choice_label' => function (ProductStatus $choice) {
-                    return ucfirst($choice->value); // "Active", "Inactive"
-                },
-                'placeholder' => 'Select status',
-                'constraints' => [
+                'class'        => ProductStatus::class,
+                'label'        => 'Listing status',
+                'choice_label' => fn(ProductStatus $choice): string => ucfirst($choice->value),
+                'placeholder'  => 'Select status',
+                'constraints'  => [
                     new Assert\NotBlank(message: 'Please choose a status'),
                 ],
             ])
-            ->add('category', TextType::class, [
-                'label'    => 'Category',
-                'mapped'   => false,
-                'required' => false,
-                'attr'     => ['placeholder' => 'e.g. Electronics > Headphones'],
+            // ── Category ─────────────────────────────────────────────────────
+            // EntityType renders as a <select> and maps directly to the
+            // ProductCategory entity on the Product — no manual lookup needed.
+            // `required: false` means an uncategorised product is valid.
+            ->add('category', EntityType::class, [
+                'class'        => ProductCategory::class,
+                'label'        => 'Category',
+                'required'     => false,
+                'placeholder'  => '— No category —',
+                'choice_label' => fn(ProductCategory $cat): string => ($cat->getIcon() ? $cat->getIcon() . ' ' : '') . $cat->getName(),
+                'query_builder' => fn(\App\Repository\ProductCategoryRepository $repo) => $repo
+                    ->createQueryBuilder('c')
+                    ->where('c.isActive = :active')
+                    ->setParameter('active', true)
+                    ->orderBy('c.sortOrder', 'ASC')
+                    ->addOrderBy('c.name', 'ASC'),
             ])
             ->add('imageFile', FileType::class, [
-                'label'    => 'Product image',
-                'mapped'   => false,
-                'required' => false,
+                'label'       => 'Product image',
+                'mapped'      => false,
+                'required'    => false,
                 'constraints' => [
                     new Assert\File(
                         maxSize: '5M',
@@ -96,6 +106,5 @@ class ProductType extends AbstractType
                     ),
                 ],
             ]);
-        ;
     }
 }

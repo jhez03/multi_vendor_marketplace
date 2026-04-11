@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Product;
+use App\Entity\ProductCategory;
 use App\Entity\ProductStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,55 +17,81 @@ class ProductRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Product::class);
     }
+
     /**
-    * @return Product[]
-    */
+     * Featured active products from verified sellers for the homepage.
+     *
+     * @return Product[]
+     */
     public function findFeaturedFromVerifiedSellers(int $limit = 6): array
     {
+        return $this->createQueryBuilder('p')
+            ->innerJoin('p.shop', 'shop')
+            ->innerJoin('shop.seller', 'seller')
+            ->leftJoin('p.productImages', 'pi')
+            ->leftJoin('p.category', 'cat')
+            ->addSelect('shop', 'seller', 'pi', 'cat')
+            ->andWhere('p.status = :status')
+            ->andWhere('seller.isVerified = :verified')
+            ->setParameter('status', ProductStatus::ACTIVE)
+            ->setParameter('verified', true)
+            ->distinct()
+            ->addOrderBy('pi.isPrimary', 'DESC')
+            ->addOrderBy('pi.sortOrder', 'ASC')
+            ->addOrderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Browse all active products, optionally filtered by category.
+     *
+     * @return Product[]
+     */
+    public function findActive(?ProductCategory $category = null, int $limit = 48): array
+    {
         $qb = $this->createQueryBuilder('p')
-           ->innerJoin('p.shop', 'shop')
-           ->innerJoin('shop.seller', 'seller')
-           ->leftJoin('p.productImages', 'pi')
-           ->addSelect('shop', 'seller', 'pi')
-           ->andWhere('p.status = :status')
-           ->andWhere('seller.isVerified = :verified')
-           ->setParameter('status', ProductStatus::ACTIVE)
-           ->setParameter('verified', true)
-           ->distinct()
-           // Prefer primary image first inside the collection (best-effort).
-           // This does NOT filter out non-primary images; it only affects ordering.
-           ->addOrderBy('pi.isPrimary', 'DESC')
-           ->addOrderBy('pi.sortOrder', 'ASC')
-           ->addOrderBy('p.createdAt', 'DESC')
-           ->setMaxResults($limit);
+            ->innerJoin('p.shop', 'shop')
+            ->leftJoin('p.productImages', 'pi')
+            ->leftJoin('p.category', 'cat')
+            ->addSelect('shop', 'pi', 'cat')
+            ->where('p.status = :status')
+            ->setParameter('status', ProductStatus::ACTIVE)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit);
+
+        if ($category !== null) {
+            $qb->andWhere('p.category = :category')
+               ->setParameter('category', $category);
+        }
 
         return $qb->getQuery()->getResult();
     }
+
     /**
-    * Search active products by name, description, or store name.
-    *
-    * Security: All user input is passed as named DQL parameters — never
-    * interpolated into the query string — so SQL injection is impossible.
-    *
-    * @return Product[]
-    */
-    public function search(string $query, int $limit = 24): array
+     * Full-text search across name, description, and store name.
+     * Optionally scoped to a single category.
+     *
+     * Security: all user input is bound as named parameters — never
+     * interpolated into the query string.
+     *
+     * @return Product[]
+     */
+    public function search(string $query, ?ProductCategory $category = null, int $limit = 24): array
     {
-        // Sanitize: trim whitespace, collapse multiple spaces
         $clean = trim(preg_replace('/\s+/', ' ', $query));
 
-        // Reject empty / overly long inputs early (secondary guard; controller
-        // already validates, but defense-in-depth is worth it here).
         if ($clean === '' || mb_strlen($clean) > 200) {
             return [];
         }
 
-        // Wrap for LIKE — escape literal % and _ so users can't craft wildcards
         $like = '%' . addcslashes($clean, '%_') . '%';
 
-        return $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->innerJoin('p.shop', 's')
-            ->addSelect('s')
+            ->leftJoin('p.category', 'cat')
+            ->addSelect('s', 'cat')
             ->where('p.status = :status')
             ->andWhere(
                 'LOWER(p.name)        LIKE LOWER(:like) OR
@@ -74,33 +101,13 @@ class ProductRepository extends ServiceEntityRepository
             ->setParameter('status', ProductStatus::ACTIVE)
             ->setParameter('like', $like)
             ->orderBy('p.createdAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults($limit);
+
+        if ($category !== null) {
+            $qb->andWhere('p.category = :category')
+               ->setParameter('category', $category);
+        }
+
+        return $qb->getQuery()->getResult();
     }
-
-    //    /**
-    //     * @return Product[] Returns an array of Product objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Product
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 }

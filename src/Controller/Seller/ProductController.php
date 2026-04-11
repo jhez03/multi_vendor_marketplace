@@ -4,7 +4,6 @@ namespace App\Controller\Seller;
 
 use App\Entity\Product;
 use App\Entity\ProductImage;
-use App\Entity\Shop;
 use App\Form\ProductType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
