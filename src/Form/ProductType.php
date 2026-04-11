@@ -60,7 +60,6 @@ class ProductType extends AbstractType
             ->add('price', MoneyType::class, [
                 'label'       => 'Base price',
                 'currency'    => $this->currencyCode,
-                'divisor'     => 100,
                 'constraints' => [
                     new Assert\NotBlank(message: 'Please set a price'),
                     new Assert\Positive(message: 'Price must be greater than zero'),
