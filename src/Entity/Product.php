@@ -17,13 +17,20 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Shop::class, inversedBy: "product")]
-    #[ORM\JoinColumn(name: "shop_id", referencedColumnName: "id", nullable: false, unique: false)]
+    #[ORM\ManyToOne(targetEntity: Shop::class, inversedBy: 'product')]
+    #[ORM\JoinColumn(name: 'shop_id', referencedColumnName: 'id', nullable: false, unique: false)]
     private ?Shop $shop = null;
 
-    #[ORM\OneToMany(targetEntity: ProductImage::class, mappedBy: "product", cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(targetEntity: ProductImage::class, mappedBy: 'product', cascade: ['persist', 'remove'])]
     private Collection $productImages;
 
+    /**
+     * Category is optional (nullable) so existing products don't break.
+     * A seller can always assign a category later via the edit form.
+     */
+    #[ORM\ManyToOne(targetEntity: ProductCategory::class, inversedBy: 'products')]
+    #[ORM\JoinColumn(name: 'category_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?ProductCategory $category = null;
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -43,9 +50,24 @@ class Product
     public function __construct()
     {
         $this->productImages = new ArrayCollection();
-        $this->status = ProductStatus::ACTIVE;
-        $this->createdAt = new \DateTimeImmutable();
+        $this->status        = ProductStatus::ACTIVE;
+        $this->createdAt     = new \DateTimeImmutable();
     }
+
+    // ── Category ─────────────────────────────────────────────────────────────
+
+    public function getCategory(): ?ProductCategory
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?ProductCategory $category): static
+    {
+        $this->category = $category;
+        return $this;
+    }
+
+    // ── Product images ────────────────────────────────────────────────────────
 
     public function addProductImage(ProductImage $image): self
     {
@@ -53,7 +75,6 @@ class Product
             $this->productImages[] = $image;
             $image->setProduct($this);
         }
-
         return $this;
     }
 
@@ -61,22 +82,24 @@ class Product
     {
         return $this->productImages;
     }
+
     /**
-     * @return product image urls as array of strings
+     * Returns image URLs as a plain array — convenient for Twig.
+     *
+     * @return string[]
      */
     public function getProductImageUrls(): array
     {
-        return $this->productImages->map(fn($img) => $img->getUrl())->toArray();
+        return $this->productImages->map(fn(ProductImage $img) => $img->getUrl())->toArray();
     }
-
 
     public function setProductImages(?Collection $productImages): self
     {
         $this->productImages = $productImages;
-
         return $this;
     }
 
+    // ── Scalar getters / setters ──────────────────────────────────────────────
 
     public function getId(): ?int
     {
@@ -91,7 +114,6 @@ class Product
     public function setShop(Shop $shop): static
     {
         $this->shop = $shop;
-
         return $this;
     }
 
@@ -103,7 +125,6 @@ class Product
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -115,7 +136,6 @@ class Product
     public function setDescription(string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -127,7 +147,6 @@ class Product
     public function setStatus(ProductStatus $status): self
     {
         $this->status = $status;
-
         return $this;
     }
 
@@ -139,7 +158,6 @@ class Product
     public function setPrice(string $price): static
     {
         $this->price = $price;
-
         return $this;
     }
 
@@ -151,7 +169,6 @@ class Product
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 }
