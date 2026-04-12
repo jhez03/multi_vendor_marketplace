@@ -61,8 +61,8 @@ jobs:
                     --prefer-dist \
                     --no-progress
 
-            - name: Install npm dependencies
-              run: npm ci --prefer-offline
+            # - name: Install npm dependencies
+            #   run: npm ci --prefer-offline
 
             - name: Build Tailwind CSS (production)
               run: |
