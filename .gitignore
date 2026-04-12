@@ -11,6 +11,8 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+#npm modules#
+/node_modules/
 
 ###> docker compose env ###
 /.env.docker

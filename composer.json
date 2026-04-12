@@ -102,6 +102,7 @@
         }
     },
     "require-dev": {
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^13.1",
         "symfony/browser-kit": "8.0.*",
         "symfony/css-selector": "8.0.*",
@@ -109,6 +110,7 @@
         "symfony/maker-bundle": "^1.67",
         "symfony/stopwatch": "8.0.*",
         "symfony/ux-toolkit": "^2.34",
+        "symfony/var-dumper": "8.0.*",
         "symfony/web-profiler-bundle": "8.0.*"
     }
 }
