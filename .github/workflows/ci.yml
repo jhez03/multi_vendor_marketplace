@@ -15,6 +15,24 @@ jobs:
     name: Code Quality
     runs-on: ubuntu-latest
 
+    name: Prepare .env for CI (required for Symfony Dotenv)
+    run: |
+        if [ ! -f .env ]; then
+        if [ -f .env.test ]; then
+            cp .env.test .env
+        elif [ -f .env.example ]; then
+            cp .env.example .env
+        elif [ -f .env.production.example ]; then
+            cp .env.production.example .env
+        else
+            # Minimal fallback so Dotenv has a file to read
+            cat > .env <<'EOF'
+            APP_ENV=test
+            APP_DEBUG=1
+            EOF
+        fi
+        fi
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -89,6 +107,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare .env for CI (required for Symfony Dotenv)
+        run: |
+            if [ ! -f .env ]; then
+            if [ -f .env.test ]; then
+                cp .env.test .env
+            elif [ -f .env.example ]; then
+                cp .env.example .env
+            elif [ -f .env.production.example ]; then
+                cp .env.production.example .env
+            else
+                cat > .env <<'EOF'
+                APP_ENV=test
+                APP_DEBUG=1
+                EOF
+            fi
+            fi
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
