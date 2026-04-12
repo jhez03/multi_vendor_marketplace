@@ -41,6 +41,9 @@ jobs:
               id: release
               run: echo "tag=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
+            - name: Create .env from CI stub
+              run: cp .env.ci .env
+
             - name: Cache Composer packages
               uses: actions/cache@v4
               with:
@@ -49,8 +52,6 @@ jobs:
                   restore-keys: prod-composer-
 
             - name: Install Composer dependencies (prod only)
-              env:
-                  APP_ENV: prod
               run: |
                   composer install \
                     --no-dev \
