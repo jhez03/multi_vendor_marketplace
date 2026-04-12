@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PHP_VERSION: "8.4"
+
+jobs:
+  # ── Job 1: Code Quality ────────────────────────────────────────────────────
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: intl, pdo, pdo_mysql, gd, zip, mbstring, ctype, iconv
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies (dev included for tooling)
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: PHP CS Fixer (dry run)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --no-interaction
+        continue-on-error: false
+
+      - name: Symfony security check
+        run: |
+          composer require --dev symfony/security-checker --no-interaction 2>/dev/null || true
+          if command -v security-checker &> /dev/null; then
+            security-checker security:check
+          fi
+
+  # ── Job 2: Tests ───────────────────────────────────────────────────────────
+  test:
+    name: Tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    needs: quality
+
+    strategy:
+      matrix:
+        php: ["8.4"]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: marketplace_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    env:
+      APP_ENV: test
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/marketplace_test?serverVersion=8.0&charset=utf8mb4
+      APP_SECRET: test_secret_that_is_long_enough_32chars
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_placeholder
+      PAYPAL_CLIENT_ID: placeholder
+      PAYPAL_CLIENT_SECRET: placeholder
+      PAYPAL_MODE: sandbox
+      APP_CURRENCY: PHP
+      DEFAULT_URI: http://localhost
+      MAILER_DSN: null://null
+      MESSENGER_TRANSPORT_DSN: in-memory://
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl, pdo, pdo_mysql, gd, zip, mbstring, ctype, iconv
+          coverage: xdebug
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Setup database
+        run: |
+          php bin/console doctrine:database:create --env=test --if-not-exists
+          php bin/console doctrine:migrations:migrate --env=test --no-interaction
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: matrix.php == '8.4'
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
