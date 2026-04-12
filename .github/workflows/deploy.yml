@@ -37,11 +37,6 @@ jobs:
                   extensions: intl, pdo, pdo_mysql, gd, zip, mbstring, ctype, iconv
                   coverage: none
 
-            # - name: Setup Node.js (for Tailwind)
-            #   uses: actions/setup-node@v4
-            #   with:
-            #     node-version: "20"
-            #     cache: "npm"
             - name: Create .env from CI stub
               run: cp .env.ci .env
 
@@ -57,6 +52,8 @@ jobs:
                   restore-keys: prod-composer-
 
             - name: Install Composer dependencies (prod only)
+              env:
+                  APP_ENV: prod
               run: |
                   composer install \
                     --no-dev \
