@@ -27,7 +27,7 @@ class SellerProfile
     private ?string $displayName = null;
 
     #[ORM\Column]
-    private ?bool $isVerified = false;
+    private ?bool $isVerified = true;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
