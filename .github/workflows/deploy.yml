@@ -42,6 +42,8 @@ jobs:
             #   with:
             #     node-version: "20"
             #     cache: "npm"
+            - name: Create .env from CI stub
+              run: cp .env.ci .env
 
             - name: Generate release tag
               id: release
