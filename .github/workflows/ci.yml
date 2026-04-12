@@ -33,8 +33,24 @@ jobs:
           key: composer-${{ hashFiles('composer.lock') }}
           restore-keys: composer-
 
+      - name: Prepare .env for CI
+        run: |
+          # .env is git-ignored (best practice). Create it from the committed
+          # example so Symfony Dotenv does not throw a PathException if any
+          # composer post-install script or bootstrap attempts to read it.
+          if [ ! -f .env ]; then
+            if   [ -f .env.test ];               then cp .env.test .env
+            elif [ -f .env.example ];            then cp .env.example .env
+            elif [ -f .env.production.example ]; then cp .env.production.example .env
+            else printf 'APP_ENV=test\nAPP_DEBUG=1\n' > .env
+            fi
+          fi
+
       - name: Install dependencies (dev included for tooling)
-        run: composer install --no-interaction --prefer-dist --no-progress
+        # --no-scripts skips Symfony post-install commands (cache:clear, etc.)
+        # which are not needed for code-quality checks and would otherwise
+        # require a fully-configured environment.
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
       - name: PHP CS Fixer (dry run)
         run: vendor/bin/php-cs-fixer fix --dry-run --diff --no-interaction
@@ -103,6 +119,22 @@ jobs:
           path: vendor
           key: composer-${{ hashFiles('composer.lock') }}
           restore-keys: composer-
+
+      - name: Prepare .env for CI
+        run: |
+          # .env is git-ignored (best practice). Create it from the committed
+          # example so Symfony Dotenv (called by composer post-install scripts
+          # and tests/bootstrap.php) does not throw a PathException.
+          # Real CI values come from the job-level env: block above; Symfony
+          # Dotenv never overwrites variables already present in the process
+          # environment, so those take precedence over anything written here.
+          if [ ! -f .env ]; then
+            if   [ -f .env.test ];               then cp .env.test .env
+            elif [ -f .env.example ];            then cp .env.example .env
+            elif [ -f .env.production.example ]; then cp .env.production.example .env
+            else printf 'APP_ENV=test\nAPP_DEBUG=1\n' > .env
+            fi
+          fi
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
