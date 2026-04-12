@@ -27,6 +27,7 @@ rm -rf "${RELEASE_DIR}/public/uploads"
 ln -sfn "${SHARED_DIR}/var" "${RELEASE_DIR}/var"
 ln -sfn "${SHARED_DIR}/public/uploads" "${RELEASE_DIR}/public/uploads"
 ln -sfn "${SHARED_DIR}/.env" "${RELEASE_DIR}/.env"
+ln -sfn "${SHARED_DIR}/public/.htaccess" "${RELEASE_DIR}/public/.htaccess"
 
 # ── Step 2: Install Composer dependencies ────────────────────────────────────
 echo "==> Installing Composer dependencies (prod, no-dev)"
