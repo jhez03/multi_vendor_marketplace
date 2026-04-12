@@ -10,8 +10,6 @@ concurrency:
     cancel-in-progress: false # Never cancel a running deployment
 
 env:
-    APP_ENV: prod
-    APP_DEBUG: "0"
     PHP_VERSION: "8.4"
     DEPLOY_SERVER: ${{ secrets.DEPLOY_HOST }}
     DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -51,6 +49,8 @@ jobs:
                   restore-keys: prod-composer-
 
             - name: Install Composer dependencies (prod only)
+              env:
+                  APP_ENV: prod
               run: |
                   composer install \
                     --no-dev \
