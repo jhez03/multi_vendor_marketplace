@@ -27,7 +27,6 @@ rm -rf "${RELEASE_DIR}/public/uploads"
 ln -sfn "${SHARED_DIR}/var" "${RELEASE_DIR}/var"
 ln -sfn "${SHARED_DIR}/public/uploads" "${RELEASE_DIR}/public/uploads"
 ln -sfn "${SHARED_DIR}/.env" "${RELEASE_DIR}/.env"
-ln -sfn "${SHARED_DIR}/public/.htaccess" "${RELEASE_DIR}/public/.htaccess"
 
 # ── Step 2: Install Composer dependencies ────────────────────────────────────
 echo "==> Installing Composer dependencies (prod, no-dev)"
@@ -76,7 +75,7 @@ chmod 755 "${RELEASE_DIR}/bin/console"
 # ── Step 7: Atomic switch ─────────────────────────────────────────────────────
 echo "==> Switching to new release (atomic)"
 # ln -sfn is atomic on Linux — this is the zero-downtime moment
-ln -sfn "${RELEASE_DIR}/public" "${CURRENT_LINK}"
+ln -sfn "${RELEASE_DIR}" "${CURRENT_LINK}"
 
 echo "==> Release ${1} is now live"
 
