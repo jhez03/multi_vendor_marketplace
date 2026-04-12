@@ -65,7 +65,7 @@ final class Version20260412000001 extends AbstractMigration
 
         // ── 3. Seed default categories ────────────────────────────────────────
         // Using parameterised VALUES so special chars in names are safe.
-        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+        $now = new \DateTimeImmutable()->format('Y-m-d H:i:s');
 
         $seeds = [
             ['Electronics',   'electronics',    'Gadgets, devices & accessories',  '💻', 1],

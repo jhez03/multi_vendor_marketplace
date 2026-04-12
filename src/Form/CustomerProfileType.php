@@ -62,7 +62,7 @@ class CustomerProfileType extends AbstractType
                         message: 'Birth date must be in the past',
                     ),
                 ],
-                'attr' => ['max' => (new \DateTimeImmutable())->format('Y-m-d')],
+                'attr' => ['max' => new \DateTimeImmutable()->format('Y-m-d')],
             ])
             ->add('avatarFile', FileType::class, [
                 'label'       => 'Profile photo',
