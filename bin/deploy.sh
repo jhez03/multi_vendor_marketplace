@@ -76,7 +76,7 @@ chmod 755 "${RELEASE_DIR}/bin/console"
 # ── Step 7: Atomic switch ─────────────────────────────────────────────────────
 echo "==> Switching to new release (atomic)"
 # ln -sfn is atomic on Linux — this is the zero-downtime moment
-ln -sfn "${RELEASE_DIR}" "${CURRENT_LINK}"
+ln -sfn "${RELEASE_DIR}/public" "${CURRENT_LINK}"
 
 echo "==> Release ${1} is now live"
 
