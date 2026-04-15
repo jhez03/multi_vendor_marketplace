@@ -118,7 +118,7 @@ jobs:
         needs: build
         environment:
             name: production
-            url: https://deeppink-goose-466556.hostingersite.com/
+            url: https://deeppink-goose-466556.hostingersite.com
 
         steps:
             - name: Checkout (for deploy script)
@@ -143,6 +143,7 @@ jobs:
               env:
                   #domain directory
                   domain_dir: domains/deeppink-goose-466556.hostingersite.com
+                  RELEASE_TAG: ${{ needs.build.outputs.release_tag }}
               run: |
                   # Upload the tarball directly to home directory
                   scp -i ~/.ssh/deploy_key \
