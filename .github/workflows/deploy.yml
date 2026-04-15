@@ -158,14 +158,14 @@ jobs:
                       -p ${{ secrets.DEPLOY_PORT }} \
                       -o StrictHostKeyChecking=yes \
                       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-                      "mkdir -p ~/${{env.domain_dir}}/app"
+                      "mkdir -p ~/domains/deeppink-goose-466556.hostingersite.com/app"
             - name: Run deployment script
               run: |
                   ssh -i ~/.ssh/deploy_key \
                       -p ${{ secrets.DEPLOY_PORT }} \
                       -o StrictHostKeyChecking=yes \
                       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-                      "bash ~/${{env.domain_dir}}/app/bin/deploy.sh"
+                      "bash ~/domains/deeppink-goose-466556.hostingersite.com/app/bin/deploy.sh"
 
             # - name: Health check
             #   run: |
