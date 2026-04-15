@@ -25,8 +25,18 @@ rm -rf "${RELEASE_DIR}/public/uploads"
 
 # Create symlinks to shared persistent data
 ln -sfn "${SHARED_DIR}/var" "${RELEASE_DIR}/var"
-ln -sfn "${SHARED_DIR}/public/uploads" "${RELEASE_DIR}/public/uploads"
+# ln -sfn "${SHARED_DIR}/public/uploads" "${RELEASE_DIR}/public/uploads"
 ln -sfn "${SHARED_DIR}/.env" "${RELEASE_DIR}/.env"
+
+#for hostinger shared hosting
+# copy .htaccess
+cp "${SHARED_DIR}/public/.htaccess" "${RELEASE_DIR}/.htaccess"
+# copy from current uploads to new release (since we can't symlink on hostinger)
+if [ -d "${CURRENT_LINK}/public/uploads" ]; then
+    cp -r "${CURRENT_LINK}/public/uploads" "${RELEASE_DIR}/public/uploads"
+else
+    mkdir -p "${RELEASE_DIR}/public/uploads"
+fi
 
 # ── Step 2: Install Composer dependencies ────────────────────────────────────
 echo "==> Installing Composer dependencies (prod, no-dev)"
