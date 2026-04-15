@@ -37,11 +37,11 @@ jobs:
                   extensions: intl, pdo, pdo_mysql, gd, zip, mbstring, ctype, iconv
                   coverage: none
 
-            - name: Setup Node.js (for Tailwind)
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
-                  cache: "npm"
+            # - name: Setup Node.js (for Tailwind)
+            #   uses: actions/setup-node@v4
+            #   with:
+            #       node-version: "20"
+            #       cache: "npm"
 
             - name: Generate release tag
               id: release
@@ -67,8 +67,8 @@ jobs:
                     --prefer-dist \
                     --no-progress
 
-            - name: Install npm dependencies
-              run: npm ci --prefer-offline
+            # - name: Install npm dependencies
+            #   run: npm ci --prefer-offline
 
             - name: Build Tailwind CSS (production)
               run: |
@@ -140,39 +140,31 @@ jobs:
                   ssh-keyscan -H -p ${{ secrets.DEPLOY_PORT }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
             - name: Upload release to server
+              env:
+                  #domain directory
+                  domain_dir: domains/deeppink-goose-466556.hostingersite.com
               run: |
-                  RELEASE_TAG="${{ needs.build.outputs.release_tag }}"
-                  RELEASE_DIR="/home/${{ secrets.DEPLOY_USER }}/releases/${RELEASE_TAG}"
-
-                  # Create release directory on server
-                  ssh -i ~/.ssh/deploy_key \
-                      -p ${{ secrets.DEPLOY_PORT }} \
-                      -o StrictHostKeyChecking=yes \
-                      ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-                      "mkdir -p ${RELEASE_DIR}"
-
-                  # Upload and extract the archive
+                  # Upload the tarball directly to home directory
                   scp -i ~/.ssh/deploy_key \
                       -P ${{ secrets.DEPLOY_PORT }} \
                       -o StrictHostKeyChecking=yes \
                       /tmp/release-${RELEASE_TAG}.tar.gz \
-                      ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/
+                      ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/$domain_dir/app_incoming.tar.gz
 
-                  ssh -i ~/.ssh/deploy_key \
-                      -p ${{ secrets.DEPLOY_PORT }} \
-                      -o StrictHostKeyChecking=yes \
-                      ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-                      "tar -xzf /tmp/release-${RELEASE_TAG}.tar.gz -C ${RELEASE_DIR} && rm /tmp/release-${RELEASE_TAG}.tar.gz"
-
-            - name: Run server-side deployment
+            - name: Prepare app directory on server
               run: |
-                  RELEASE_TAG="${{ needs.build.outputs.release_tag }}"
-
                   ssh -i ~/.ssh/deploy_key \
                       -p ${{ secrets.DEPLOY_PORT }} \
                       -o StrictHostKeyChecking=yes \
                       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-                      "bash /home/${{ secrets.DEPLOY_USER }}/releases/${RELEASE_TAG}/bin/deploy.sh ${RELEASE_TAG}"
+                      "mkdir -p ~/$domain_dir/app"
+            - name: Run deployment script
+              run: |
+                  ssh -i ~/.ssh/deploy_key \
+                      -p ${{ secrets.DEPLOY_PORT }} \
+                      -o StrictHostKeyChecking=yes \
+                      ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+                      "bash ~/$domain_dir/app/bin/deploy.sh"
 
             # - name: Health check
             #   run: |
@@ -191,24 +183,24 @@ jobs:
             #       fi
             #
             #       echo "Health check passed! HTTP status: ${HTTP_STATUS}"
-
-            - name: Create GitHub Release
-              uses: actions/github-script@v7
-              with:
-                  script: |
-                      const tag = '${{ needs.build.outputs.release_tag }}';
-                      await github.rest.repos.createRelease({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        tag_name: `v${tag}`,
-                        name: `Production Deploy ${tag}`,
-                        body: `Deployed to production at ${new Date().toISOString()}`,
-                        draft: false,
-                        prerelease: false,
-                      });
-
-            - name: Notify on failure
-              if: failure()
-              run: |
-                  echo "::error::Deployment failed! Check the logs above."
-                  echo "::warning::Consider rolling back with: bin/rollback.sh"
+            #
+            # - name: Create GitHub Release
+            #   uses: actions/github-script@v7
+            #   with:
+            #       script: |
+            #           const tag = '${{ needs.build.outputs.release_tag }}';
+            #           await github.rest.repos.createRelease({
+            #             owner: context.repo.owner,
+            #             repo: context.repo.repo,
+            #             tag_name: `v${tag}`,
+            #             name: `Production Deploy ${tag}`,
+            #             body: `Deployed to production at ${new Date().toISOString()}`,
+            #             draft: false,
+            #             prerelease: false,
+            #           });
+            #
+            # - name: Notify on failure
+            #   if: failure()
+            #   run: |
+            #       echo "::error::Deployment failed! Check the logs above."
+            #       echo "::warning::Consider rolling back with: bin/rollback.sh"
