@@ -21,11 +21,11 @@ echo "==> Linking shared directories"
 
 # Remove the placeholder directories created during rsync
 rm -rf "${RELEASE_DIR}/var"
-rm -rf "${RELEASE_DIR}/public/uploads"
+# rm -rf "${RELEASE_DIR}/public/uploads"
 
 # Create symlinks to shared persistent data
 ln -sfn "${SHARED_DIR}/var" "${RELEASE_DIR}/var"
-ln -sfn "${SHARED_DIR}/public/uploads" "${RELEASE_DIR}/public/uploads"
+# ln -sfn "${SHARED_DIR}/public/uploads" "${RELEASE_DIR}/public/uploads"
 ln -sfn "${SHARED_DIR}/.env" "${RELEASE_DIR}/.env"
 
 # ── Step 2: Install Composer dependencies ────────────────────────────────────
