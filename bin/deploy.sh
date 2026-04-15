@@ -1,39 +1,69 @@
 #!/usr/bin/env bash
-# bin/deploy.sh — Runs on the server during deployment
-# Called by GitHub Actions after uploading a release
+# bin/deploy.sh
+# Runs on Hostinger shared hosting after CI uploads the release
 
 set -euo pipefail
 
 # ── Configuration ────────────────────────────────────────────────────────────
-DEPLOY_BASE="${HOME}"
-RELEASES_DIR="${DEPLOY_BASE}/releases"
-SHARED_DIR="${DEPLOY_BASE}/shared"
-CURRENT_LINK="${DEPLOY_BASE}/domains/deeppink-goose-466556.hostingersite.com/public_html"
-KEEP_RELEASES=5
+APP_DIR="${HOME}/domains/deeppink-goose-466556.hostingersite.com/app"
+PUBLIC_HTML="${HOME}/domains/deeppink-goose-466556.hostingersite.com/public_html"
+UPLOADS_DIR="${PUBLIC_HTML}/uploads"
 
-# The release directory is passed as an argument from CI
-RELEASE_DIR="${RELEASES_DIR}/${1}"
+echo "==> Starting shared hosting deployment"
+echo "==> App dir: ${APP_DIR}"
+echo "==> Public HTML: ${PUBLIC_HTML}"
 
-echo "==> Starting deployment to ${RELEASE_DIR}"
+# ── Step 1: Backup current app for rollback ──────────────────────────────────
+echo "==> Backing up current release for rollback"
+if [ -d "${APP_DIR}/app_previous" ]; then
+    rm -rf "${APP_DIR}/app_previous"
+fi
+if [ -d "${APP_DIR}" ]; then
+    cp -a "${APP_DIR}" "${APP_DIR}/app_previous"
+fi
 
-# ── Step 1: Link shared directories ─────────────────────────────────────────
-echo "==> Linking shared directories"
+# ── Step 2: Move uploaded release into app directory ─────────────────────────
+echo "==> Installing new release"
+# The CI uploads a tarball to ~/app_incoming
+# We extract it over the current app directory
+if [ -f "${APP_DIR}/app_incoming.tar.gz" ]; then
+    # Preserve uploads and .env during extraction
+    tar -xzf "${APP_DIR}/app_incoming.tar.gz" -C "${APP_DIR}" \
+        --exclude='./public/uploads' \
+        --exclude='./.env'
+    rm "${APP_DIR}/app_incoming.tar.gz"
+else
+    echo "ERROR: No release archive found at ~/app_incoming.tar.gz"
+    exit 1
+fi
 
-# Remove the placeholder directories created during rsync
-rm -rf "${RELEASE_DIR}/var"
-# rm -rf "${RELEASE_DIR}/public/uploads"
+# ── Step 3: Ensure .env is in place ──────────────────────────────────────────
+# The .env file lives permanently at ~/app/.env
+# It was NOT overwritten by the tar extraction above
+echo "==> Verifying .env exists"
+if [ ! -f "${APP_DIR}/.env" ]; then
+    echo "ERROR: .env file missing from ${APP_DIR}"
+    echo "Please create it manually via SSH"
+    exit 1
+fi
 
-# Create symlinks to shared persistent data
-ln -sfn "${SHARED_DIR}/var" "${RELEASE_DIR}/var"
-# ln -sfn "${SHARED_DIR}/public/uploads" "${RELEASE_DIR}/public/uploads"
-ln -sfn "${SHARED_DIR}/.env" "${RELEASE_DIR}/.env"
+# ── Step 4: Install Composer dependencies ────────────────────────────────────
+echo "==> Installing Composer dependencies"
+cd "${APP_DIR}"
 
-# ── Step 2: Install Composer dependencies ────────────────────────────────────
-echo "==> Installing Composer dependencies (prod, no-dev)"
-cd "${RELEASE_DIR}"
-
-# Hostinger provides Composer — check where it is
-COMPOSER_BIN=$(which composer || echo "${HOME}/composer.phar")
+# Hostinger provides PHP and Composer
+# Check the path — it varies by Hostinger plan
+COMPOSER_BIN="composer"
+if ! command -v composer &>/dev/null; then
+    # Hostinger sometimes requires explicit path
+    COMPOSER_BIN="${HOME}/bin/composer"
+    if [ ! -f "${COMPOSER_BIN}" ]; then
+        echo "==> Downloading Composer"
+        php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+        php composer-setup.php --install-dir="${HOME}/bin" --filename=composer
+        rm composer-setup.php
+    fi
+fi
 
 ${COMPOSER_BIN} install \
     --no-dev \
@@ -44,43 +74,41 @@ ${COMPOSER_BIN} install \
     --no-progress \
     --quiet
 
-# ── Step 3: Symfony warmup ────────────────────────────────────────────────────
-echo "==> Warming up Symfony cache"
-
-# Ensure APP_ENV=prod is exported before running console commands
+# ── Step 5: Symfony cache warmup ─────────────────────────────────────────────
+echo "==> Clearing and warming Symfony cache"
 export APP_ENV=prod
 export APP_DEBUG=0
 
-php bin/console cache:clear --env=prod --no-debug --no-warmup
-php bin/console cache:warmup --env=prod --no-debug
+php bin/console cache:clear --env=prod --no-debug --no-warmup --quiet
+php bin/console cache:warmup --env=prod --no-debug --quiet
 
-# ── Step 4: Run database migrations ──────────────────────────────────────────
+# ── Step 6: Run database migrations ──────────────────────────────────────────
 echo "==> Running database migrations"
-php bin/console doctrine:migrations:migrate --env=prod --no-debug --no-interaction --allow-no-migration
+php bin/console doctrine:migrations:migrate \
+    --env=prod \
+    --no-debug \
+    --no-interaction \
+    --allow-no-migration \
+    --quiet
 
-# ── Step 5: Build Tailwind CSS ────────────────────────────────────────────────
-# We build assets in CI and upload them, so this is just a verification step
-echo "==> Verifying asset manifest"
-if [ ! -f "${RELEASE_DIR}/public/assets/manifest.json" ]; then
-    echo "ERROR: Asset manifest not found. Did the build step run?"
+# ── Step 7: Sync public/ to public_html/ ─────────────────────────────────────
+echo "==> Syncing public assets to public_html"
+
+# rsync syncs app/public/ contents into public_html/
+# --delete removes files from public_html that no longer exist in public/
+# --exclude preserves uploads directory across deploys
+rsync -a \
+    --delete \
+    --exclude='/uploads/' \
+    "${APP_DIR}/public/" \
+    "${PUBLIC_HTML}/"
+
+# ── Step 8: Verify .htaccess landed correctly ─────────────────────────────────
+echo "==> Verifying .htaccess"
+if [ ! -f "${PUBLIC_HTML}/.htaccess" ]; then
+    echo "ERROR: .htaccess missing from public_html after rsync"
     exit 1
 fi
 
-# ── Step 6: Set correct file permissions ─────────────────────────────────────
-echo "==> Setting file permissions"
-find "${RELEASE_DIR}" -type f -exec chmod 644 {} \;
-find "${RELEASE_DIR}" -type d -exec chmod 755 {} \;
-chmod 755 "${RELEASE_DIR}/bin/console"
-
-# ── Step 7: Atomic switch ─────────────────────────────────────────────────────
-echo "==> Switching to new release (atomic)"
-# ln -sfn is atomic on Linux — this is the zero-downtime moment
-ln -sfn "${RELEASE_DIR}" "${CURRENT_LINK}"
-
-echo "==> Release ${1} is now live"
-
-# ── Step 8: Clean up old releases ────────────────────────────────────────────
-echo "==> Cleaning up old releases (keeping ${KEEP_RELEASES})"
-ls -1dt "${RELEASES_DIR}"/* | tail -n +$((KEEP_RELEASES + 1)) | xargs rm -rf
-
 echo "==> Deployment complete"
+echo "==> Site: https://deeppink-goose-466556.hostingersite.com"
